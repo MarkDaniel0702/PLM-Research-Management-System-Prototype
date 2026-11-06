@@ -1,0 +1,16 @@
+# dependencies and build output
+node_modules/
+dist/
+
+# secrets and local config (none are used by this project, excluded as a precaution)
+.env
+.env.*
+*.pem
+*.key
+
+# logs, editor and OS files
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
