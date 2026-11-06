@@ -2,7 +2,7 @@
 
 > **This is a prototype for demonstration and feedback.** It uses demo data only and stores everything in your own browser. Do not enter real personal or institutional data.
 
-**Live demo:** _to be added after deployment_ — `https://MarkDaniel0702.github.io/PLM-Research-Management-System-Prototype/`
+**Live demo:** https://markdaniel0702.github.io/PLM-Research-Management-System-Prototype/
 **Leave feedback:** use the **Give feedback** button inside the app, or [open an issue](https://github.com/MarkDaniel0702/PLM-Research-Management-System-Prototype/issues/new).
 
 ## What it is
@@ -77,7 +77,7 @@ deploy.sh             publishes the built site to the gh-pages branch
 
 1. Run `bash deploy.sh` (builds the site and pushes it to the `gh-pages` branch).
 2. On GitHub open **Settings → Pages**, set **Source** to **Deploy from a branch**, choose **gh-pages** and **/ (root)**, then **Save**.
-3. After a minute the site is at `https://MarkDaniel0702.github.io/PLM-Research-Management-System-Prototype/`. Add that link to the top of this README.
+3. After a minute the site is live at the link at the top of this README.
 
 **Netlify or Vercel:** import this repository, use build command `npm run build` and publish folder `dist`. No environment variables are needed.
 
