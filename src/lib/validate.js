@@ -1,5 +1,5 @@
 // Form validation (Documentation §8.3). Returns { field: message }; empty object = valid.
-import { TYPES, MASTERS } from '../schema.js';
+import { MASTERS, metaOf } from '../schema.js';
 
 const ISSN = /^\d{4}-\d{3}[\dXx]$/;
 const DOI = /^10\.\d{4,9}\/\S+$/;
@@ -8,7 +8,7 @@ const DOI = /^10\.\d{4,9}\/\S+$/;
 export const normalizeDoi = (v) => v.trim().replace(/^(doi:\s*|https?:\/\/(dx\.)?doi\.org\/)/i, '');
 
 export function validateRecord(rec, db) {
-  const t = TYPES[rec.type];
+  const t = metaOf(rec);
   const e = {};
   const title = rec.title.trim();
   if (!title) e.title = 'Title is required.';
@@ -16,7 +16,7 @@ export function validateRecord(rec, db) {
   else if (db.records.some((r) => r.type === rec.type && r.id !== rec.id && r.title.trim().toLowerCase() === title.toLowerCase())) e.title = 'A record with this title already exists.';
 
   if (t.unit === 'office' ? !rec.office : !rec.college) e[t.unit] = `${t.unit === 'office' ? 'Office' : 'College'} is required.`;
-  if (!rec.authors.length) e.authors = `Select the lead ${t.people === 'students' ? 'student' : t.people === 'employees' ? 'employee' : 'author'}.`;
+  if (!rec.authors.length) e.authors = `Select the lead ${t.noun}.`;
   if (!rec.year) e.year = 'Academic year is required.';
   if (!rec.semester) e.semester = 'Semester is required.';
 

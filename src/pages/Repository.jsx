@@ -133,7 +133,7 @@ export default function Repository() {
                               <span>{authorNames(db, r)}</span><Badge>{unitLabel(db, r)}</Badge><span>{r.year} · {semesterName(db, r.semester)}</span>
                               {r.indexing && <IndexBadge idx={indexOf(db, r.indexing)} />}
                               {r.journal && <em>{r.journal}</em>}{r.event && <span>{r.event}</span>}
-                              {r.status !== 'verified' && <Badge variant={STATUS[r.status].variant}>{STATUS[r.status].label}</Badge>}
+                              {r.status !== 'approved' && <Badge variant={STATUS[r.status].variant}>{STATUS[r.status].label}</Badge>}
                             </div>
                           </div>
                           <Btn variant="link" size="sm" icon="eye" to={`/records/${r.type}/${r.id}`} aria-label={`View ${r.title}`}>View</Btn>

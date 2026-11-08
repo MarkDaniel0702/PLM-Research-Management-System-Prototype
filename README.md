@@ -12,9 +12,10 @@ A clickable prototype of a research management and repository system for Pamanta
 ## Key features
 
 - **Sign-in with roles:** Administrator, College Coordinator, Faculty, Student, Employee, Auditor. Menus and actions change by role.
+- **Simple accounts for Faculty, Student and Employee:** a **My Submissions** page (status tiles and a list of their own research), tabs for their own Research, Presented Papers and Published Journals, a submission form, and notifications when a reviewer acts. No reports, search or admin screens, and they only ever see their own records.
 - **Dashboard:** totals, charts and recent activity with year, semester and college filters.
-- **Five record types:** Faculty Research, Employee Research (by office), Presented Papers, Published Journals, Student Research. Search, filter, sort, add, edit, delete, and a detail page for each record.
-- **Review workflow:** submissions from faculty, students and employees wait for a coordinator to verify or return them.
+- **Five record types:** Faculty Research, Employee Research (by office), Presented Papers, Published Journals, Student Research. Presented Papers and Published Journals are shared by faculty, students and employees (an *Author type* on each record). Search, filter, sort, add, edit, delete, and a detail page for each record.
+- **Review workflow:** every submission moves **Pending → Under Review → Approved or Rejected**. Coordinators and the administrator start the review, approve, or reject with a reason; the author edits and resubmits a rejected entry. Each record page shows a progress tracker.
 - **Reports:** eleven standard reports plus a custom report builder. Export to Excel (.xlsx) or PDF (use the print dialog and choose "Save as PDF").
 - **Repository search:** keyword search with filters, results grouped by type.
 - **Maintenance:** manage colleges, courses, faculty, students, employees, offices, semesters, academic years, indexing categories and funding agencies.
@@ -45,9 +46,12 @@ Demo data only. These are also shown on the login screen.
 | Research Office Administrator | admin@plm.edu.ph | Admin@123 |
 | College Coordinator (CET) | cet.research@plm.edu.ph | Coord@123 |
 | College Coordinator (CCSS) | ccss.research@plm.edu.ph | Coord@123 |
-| Faculty | msantos@plm.edu.ph | Faculty@123 |
-| Student | avaldez@plm.edu.ph | Student@123 |
-| Employee | mdelacruz@plm.edu.ph | Employee@123 |
+| Faculty (Dr. Maria Santos, CET) | msantos@plm.edu.ph | Faculty@123 |
+| Faculty (Dr. Jose Reyes, CS) | jreyes@plm.edu.ph | Faculty@123 |
+| Student (Aira Valdez, CCSS) | avaldez@plm.edu.ph | Student@123 |
+| Student (Andrei Reyes, CET) | areyes@plm.edu.ph | Student@123 |
+| Employee (Accounting Office) | mdelacruz@plm.edu.ph | Employee@123 |
+| Employee (Security Office) | esantos@plm.edu.ph | Employee@123 |
 | Viewer / Auditor | audit@plm.edu.ph | Audit@123 |
 
 `former.faculty@plm.edu.ph` / `Faculty@123` is a deactivated account, used to show that sign-in is blocked.
@@ -65,8 +69,8 @@ src/
   perm.js             who can see and do what
   index.css           responsive styles
   components/         shared UI, layout, record form, export menu
-  pages/              Login, Dashboard, Records, RecordDetail, Reports,
-                      Repository, Maintenance, Admin
+  pages/              Login, Dashboard, MySubmissions, Records, RecordDetail,
+                      Reports, Repository, Maintenance, Admin
   lib/                data helpers, validation, column definitions, export
 deploy.sh             publishes the built site to the gh-pages branch
 ```
@@ -85,4 +89,5 @@ deploy.sh             publishes the built site to the gh-pages branch
 
 - Each visitor's changes stay in their own browser and are not shared. Use **Administration → System Settings → Reset demo data** to start over.
 - Passwords are stored in plain text in the browser. This is acceptable for a demo only; a real system needs a secure backend.
-- Not built yet: file attachments, and presented-paper modules for students and employees.
+- The sample data has 100 demo research entries across all roles, with a mix of Pending, Under Review, Approved and Rejected.
+- Not built yet: file attachments.

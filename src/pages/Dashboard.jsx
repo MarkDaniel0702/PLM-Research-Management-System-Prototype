@@ -1,9 +1,9 @@
 // Dashboard: metric tiles, charts, recent activity — all computed live from the store and scoped to the user's role.
 import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Badge, Card, CardTitle, ChartCanvas, FilterSelect, Icon, MetricCard } from '../components/ui.jsx';
+import { Card, CardTitle, ChartCanvas, FilterSelect, Icon, MetricCard } from '../components/ui.jsx';
 import { getUser, useStore } from '../store.js';
-import { TYPES, TYPE_LIST, STATUS } from '../schema.js';
+import { TYPES, TYPE_LIST } from '../schema.js';
 import { canAudit, canCreateType, canReports, officialOnly, recordCollege } from '../perm.js';
 import { applyFilters, authorNames, byId, nameOf, pct, timeAgo, visibleRecords } from '../lib/data.js';
 
@@ -46,11 +46,9 @@ export default function Dashboard() {
   const activeColleges = new Set(rows.map((r) => recordCollege(db, r)).filter(Boolean)).size;
 
   // Recent activity from the audit log, scoped to what this user may see
-  const activity = useMemo(() => db.audit.filter((a) => ['create', 'update', 'verify', 'return', 'delete'].includes(a.action) && a.recordId && /^[A-Z]{2}-\d+/.test(a.recordId)
+  const activity = useMemo(() => db.audit.filter((a) => ['create', 'update', 'review', 'approve', 'reject', 'delete'].includes(a.action) && a.recordId && /^[A-Z]{2}-\d+/.test(a.recordId)
     && (user.role === 'admin' || user.role === 'auditor' ? true : user.role === 'coordinator' ? a.college === user.college : a.userId === user.id)).slice(0, 6), [db.audit, user]);
 
-  const mine = visibleRecords(db, user).filter((r) => r.createdBy === user.id || (user.personId && r.authors.includes(user.personId)));
-  const contributor = ['faculty', 'student', 'employee'].includes(user.role);
   const addType = TYPE_LIST.find((t) => canCreateType(user, t.id));
   const ay = f.year ? `AY ${f.year}` : 'all academic years';
   const ctx = `${ay}${f.semester ? ` · ${nameOf(db, 'semesters', f.semester)}` : ''}${college ? ` · ${nameOf(db, 'colleges', college, 'abbr')}` : ''}`;
@@ -103,10 +101,10 @@ export default function Dashboard() {
           {activity.length === 0 && <p style={{ fontSize: 14, color: '#5C6B7A', padding: '12px 0' }}>No recent activity yet.</p>}
           {activity.map((a, i) => {
             const rec = db.records.find((r) => r.id === a.recordId);
-            const verb = { create: 'added', update: 'edited', verify: 'verified', return: 'returned', delete: 'deleted' }[a.action];
+            const verb = { create: 'added', update: 'edited', review: 'started reviewing', approve: 'approved', reject: 'rejected', delete: 'deleted' }[a.action];
             const inner = (
               <>
-                <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#E9EDF7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icon name={{ create: 'plus', update: 'edit', verify: 'check', return: 'undo', delete: 'trash' }[a.action]} size={14} color="#1F3A93" /></div>
+                <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#E9EDF7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icon name={{ create: 'plus', update: 'edit', review: 'eye', approve: 'check', reject: 'undo', delete: 'trash' }[a.action]} size={14} color="#1F3A93" /></div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13.5, lineHeight: 1.4 }}><span style={{ fontWeight: 600 }}>{a.userName}</span> {verb} a <span style={{ color: '#1F3A93' }}>{a.module}</span> record</div>
                   <div style={{ fontSize: 12.5, color: '#5C6B7A', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.recordTitle}</div>
@@ -120,15 +118,6 @@ export default function Dashboard() {
         </Card>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14, minWidth: 0 }}>
-          {contributor && (
-            <Card>
-              <CardTitle title="My Outputs" sub="Records you authored or submitted" />
-              {Object.entries(STATUS).map(([k, s]) => (
-                <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', fontSize: 13.5 }}><Badge variant={s.variant}>{s.label}</Badge><strong>{mine.filter((r) => r.status === k).length}</strong></div>
-              ))}
-              {addType && <Link to={`/records/${addType.id}`} style={{ display: 'inline-block', marginTop: 10, fontSize: 13 }}>Go to my {addType.label.toLowerCase()} →</Link>}
-            </Card>
-          )}
           <Card>
             <CardTitle title="Key Indicators" sub={ctx} />
             <Row label="Externally funded outputs" value={funded} />

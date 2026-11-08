@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Btn, FormField, Input, MultiSelect, Select, Textarea, useToast } from './ui.jsx';
 import { getUser, saveRecord, useStore } from '../store.js';
-import { TYPES } from '../schema.js';
+import { KINDS, ROLE_KIND, TYPES, metaOf } from '../schema.js';
 import { byId, nameOf, options } from '../lib/data.js';
 import { normalizeDoi, validateRecord } from '../lib/validate.js';
 
@@ -11,12 +11,13 @@ const CONTRIBUTORS = ['faculty', 'student', 'employee'];
 
 export function blankRecord(type, db, user) {
   const t = TYPES[type];
-  const r = { type, title: '', authors: [], college: '', office: '', course: '', year: db.settings.activeYear, semester: db.settings.defaultSemester, funded: false, fundingAgency: '',
+  const r = { type, authorKind: t.kinds ? (ROLE_KIND[user.role] || 'faculty') : null, title: '', authors: [], college: '', office: '', course: '', year: db.settings.activeYear, semester: db.settings.defaultSemester, funded: false, fundingAgency: '',
     event: '', venue: '', eventDate: '', journal: '', issn: '', volume: '', yearPublished: '', doi: '', indexing: '' };
   if (user.role === 'coordinator') r.college = user.college; // college locked to the coordinator's own
   if (user.personId && CONTRIBUTORS.includes(user.role)) { // "My Research" flow: pre-fill the signed-in author
-    const p = byId(db[t.people], user.personId);
-    if (p) { r.authors = [p.id]; if (t.unit === 'office') r.office = p.office; else { r.college = p.college; if (t.course) r.course = p.course; } }
+    const m = metaOf(r);
+    const p = byId(db[m.people], user.personId);
+    if (p) { r.authors = [p.id]; if (m.unit === 'office') r.office = p.office; else { r.college = p.college; if (m.course) r.course = p.course; } }
   }
   return r;
 }
@@ -57,7 +58,7 @@ const Radio = ({ name, checked, onChange, children }) => (
 // The fields. `sections` = group labels shown as fieldsets on the full-page layout.
 export function RecordFields({ type, ctl, sectioned }) {
   const { form, set, errors, db, user } = ctl;
-  const t = TYPES[type];
+  const t = metaOf(form);
   const isOffice = t.unit === 'office';
   const contributor = CONTRIBUTORS.includes(user.role);
   const people = db[t.people];
@@ -89,7 +90,7 @@ export function RecordFields({ type, ctl, sectioned }) {
 
   const unitField = isOffice ? (
     <FormField label="Office" required error={errors.office}>
-      <Select value={form.office} onChange={setUnit} error={errors.office} placeholder="Select office" disabled={contributor} options={options(db.offices, 'name', form.office)} />
+      <Select value={form.office} onChange={setUnit} error={errors.office} placeholder="Select office" disabled={contributor} options={options(db.offices.filter((o) => user.role !== 'coordinator' || o.college === user.college), 'name', form.office)} />
     </FormField>
   ) : (
     <FormField label="College" required error={errors.college}>
@@ -97,7 +98,13 @@ export function RecordFields({ type, ctl, sectioned }) {
     </FormField>
   );
   const office = isOffice ? byId(db.offices, form.office) : null;
-  const peopleNoun = t.people === 'students' ? 'student' : t.people === 'employees' ? 'employee' : 'author';
+  const peopleNoun = t.noun;
+  const setKind = (v) => set({ authorKind: v, authors: [], office: '', course: '', college: user.role === 'coordinator' ? user.college : '' });
+  const kindField = TYPES[type].kinds && !contributor && (
+    <FormField label="Author type" required hint="Decides which master list the authors come from.">
+      <Select value={t.people} onChange={setKind} disabled={!!form.id} options={Object.entries(KINDS).map(([v, k]) => ({ value: v, label: k.kindLabel }))} />
+    </FormField>
+  );
 
   // Plain function (not a component) so inputs keep focus across re-renders.
   const group = (title, children) => (sectioned
@@ -106,10 +113,10 @@ export function RecordFields({ type, ctl, sectioned }) {
 
   const authors = (
     <>
-      <FormField label={`Lead ${peopleNoun}`} required error={errors.authors} hint={contributor ? 'You are the lead author of your submission.' : `Choose from the ${t.peopleLabel.toLowerCase()} master list.`}>
+      <FormField label={`Lead ${peopleNoun}`} required error={errors.authors} hint={contributor ? 'You are the lead author of your submission.' : `Choose from the ${t.plural.toLowerCase()} master list.`}>
         <Select value={lead} onChange={setLead} error={errors.authors} placeholder={`Select lead ${peopleNoun}`} disabled={contributor} options={leadOptions} />
       </FormField>
-      <FormField label={`Co-${peopleNoun}s`} hint={`# of ${t.people === 'students' ? 'students' : t.people === 'employees' ? 'employees' : 'authors'} = ${form.authors.length} (computed automatically)`}>
+      <FormField label={`Co-${peopleNoun}s`} hint={`# of ${t.noun}s = ${form.authors.length} (computed automatically)`}>
         <MultiSelect value={co} onChange={setCo} options={coOptions} placeholder={`Add co-${peopleNoun}s (optional)`} />
       </FormField>
     </>
@@ -141,7 +148,7 @@ export function RecordFields({ type, ctl, sectioned }) {
   if (t.journal) {
     return (
       <div className="form-stack">
-        {group('1 · Article', <>{titleField}{authors}</>)}
+        {group('1 · Article', <>{kindField}{titleField}{authors}</>)}
         {group('2 · Journal', <>
           <FormField label="Journal name" required error={errors.journal}><Input value={form.journal} onChange={(v) => set({ journal: v })} placeholder="Full journal name" error={errors.journal} /></FormField>
           <div className="form-grid">
@@ -161,6 +168,7 @@ export function RecordFields({ type, ctl, sectioned }) {
 
   return (
     <div className="form-stack">
+      {kindField}
       {titleField}
       {unitField}
       {isOffice && office && <FormField label="Office category"><Input value={office.category} readOnly /></FormField>}

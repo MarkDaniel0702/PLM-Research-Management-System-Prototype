@@ -73,7 +73,7 @@ export function requestPasswordReset(email) {
 // ─── Research records ──────────────────────────────────────────────────────────
 const DIFF_FIELDS = { title: 'title', authors: 'authors', college: 'college', office: 'office', course: 'course', year: 'academic year', semester: 'semester',
   funded: 'funding', fundingAgency: 'funding agency', event: 'event', venue: 'venue', eventDate: 'event date', journal: 'journal', issn: 'ISSN',
-  volume: 'volume', yearPublished: 'year published', doi: 'DOI', indexing: 'indexing' };
+  volume: 'volume', yearPublished: 'year published', doi: 'DOI', indexing: 'indexing', authorKind: 'author type' };
 
 export function saveRecord(rec) {
   const user = getUser();
@@ -83,10 +83,10 @@ export function saveRecord(rec) {
   let saved; let records; let summary;
   if (existing) {
     const changed = Object.keys(DIFF_FIELDS).filter((k) => JSON.stringify(existing[k] ?? null) !== JSON.stringify(rec[k] ?? null)).map((k) => DIFF_FIELDS[k]);
-    // Contributors' edits go back to review (also resubmits a returned record); approvers' edits keep the status.
+    // Contributors' edits go back to Pending (this also resubmits a rejected record); approvers' edits keep the status.
     const approver = user.role === 'admin' || user.role === 'coordinator';
     const status = approver ? existing.status : 'pending';
-    saved = { ...existing, ...rec, status, returnReason: status === 'returned' ? existing.returnReason : '', updatedAt: now, updatedBy: user.id };
+    saved = { ...existing, ...rec, status, returnReason: status === 'rejected' ? existing.returnReason : '', updatedAt: now, updatedBy: user.id };
     records = db.records.map((r) => (r.id === saved.id ? saved : r));
     summary = changed.length ? `Updated: ${changed.join(', ')}` : 'Saved with no changes';
     if (!approver && existing.status !== 'pending') summary += ' (resubmitted for review)';
@@ -94,7 +94,7 @@ export function saveRecord(rec) {
     const t = TYPES[rec.type];
     const n = db.records.filter((r) => r.type === rec.type).reduce((m, r) => Math.max(m, parseInt(r.id.split('-')[1], 10) || 0), 0) + 1;
     const approver = user.role === 'admin' || user.role === 'coordinator';
-    saved = { ...rec, id: `${t.prefix}-${String(n).padStart(4, '0')}`, status: approver ? 'verified' : 'pending', returnReason: '',
+    saved = { ...rec, id: `${t.prefix}-${String(n).padStart(4, '0')}`, status: approver ? 'approved' : 'pending', returnReason: '',
       createdAt: now, createdBy: user.id, updatedAt: now, updatedBy: user.id };
     records = [saved, ...db.records];
     summary = approver ? 'Record created' : 'Record submitted for review';
@@ -119,9 +119,9 @@ export function setRecordStatus(id, status, reason = '') {
   const r = db.records.find((x) => x.id === id);
   if (!r) return;
   const now = new Date().toISOString();
-  const records = db.records.map((x) => (x.id === id ? { ...x, status, returnReason: status === 'returned' ? reason : '', updatedAt: now, updatedBy: user.id } : x));
-  setDb(withAudit({ ...db, records }, user, { action: status === 'verified' ? 'verify' : 'return', module: TYPES[r.type].label, recordId: r.id,
-    recordTitle: r.title, summary: status === 'verified' ? 'Record verified' : `Returned to author: ${reason}`, college: collegeOfRecord(db, r) }));
+  const records = db.records.map((x) => (x.id === id ? { ...x, status, returnReason: status === 'rejected' ? reason : '', updatedAt: now, updatedBy: user.id } : x));
+  const [action, summary] = { review: ['review', 'Review started'], approved: ['approve', 'Record approved'], rejected: ['reject', `Rejected: ${reason}`] }[status];
+  setDb(withAudit({ ...db, records }, user, { action, module: TYPES[r.type].label, recordId: r.id, recordTitle: r.title, summary, college: collegeOfRecord(db, r) }));
 }
 
 // ─── Master data ───────────────────────────────────────────────────────────────

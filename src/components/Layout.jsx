@@ -4,10 +4,14 @@ import { Link, NavLink, Navigate, Outlet, useLocation, useNavigate } from 'react
 import { Icon, useToast } from './ui.jsx';
 import { getState, getUser, logout, touch, useStore } from '../store.js';
 import { FEEDBACK_URL, MASTERS, ROLES, TYPES } from '../schema.js';
-import { canApprove, canAudit, canReports, canRoute, isAdmin, visibleTypes } from '../perm.js';
+import { canApprove, canAudit, canReports, canRoute, isAdmin, isContributor, visibleTypes } from '../perm.js';
 import { timeAgo, visibleRecords } from '../lib/data.js';
 
-const NAV = (u) => [
+// Faculty / Student / Employee only submit their own research and follow its status: no reports, search or admin.
+const NAV = (u) => (isContributor(u) ? [
+  { group: 'My Submissions', items: [{ to: '/dashboard', label: 'My Submissions', icon: 'grid' }] },
+  { group: 'My Research', items: visibleTypes(u).map((t) => ({ to: `/records/${t.id}`, label: t.label, icon: t.icon })) },
+] : [
   { group: 'Overview', items: [{ to: '/dashboard', label: 'Dashboard', icon: 'grid' }] },
   { group: 'Research Records', items: visibleTypes(u).map((t) => ({ to: `/records/${t.id}`, label: t.label, icon: t.icon })) },
   { group: 'Analytics', items: [
@@ -18,7 +22,7 @@ const NAV = (u) => [
     ...(isAdmin(u) ? [{ to: '/maintenance', label: 'Maintenance', icon: 'settings' }] : []),
     ...(canAudit(u) || isAdmin(u) ? [{ to: isAdmin(u) ? '/admin' : '/admin/audit', match: '/admin', label: 'Administration', icon: 'shield' }] : []),
   ] },
-].filter((g) => g.items.length);
+]).filter((g) => g.items.length);
 
 const initials = (name) => name.replace(/^(Dr|Prof|Atty|Mr|Ms)\.\s*/, '').split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
 
@@ -76,9 +80,10 @@ function Sidebar({ user, collapsed, open, onNavigate }) {
 }
 
 // Breadcrumb trail derived from the URL; every ancestor is a link.
-function crumbsFor(path, db) {
+function crumbsFor(path, db, user) {
   const [, a, b, c, d] = path.split('/');
-  const home = { label: 'Dashboard', to: '/dashboard' };
+  const dash = isContributor(user) ? 'My Submissions' : 'Dashboard';
+  const home = { label: dash, to: '/dashboard' };
   if (a === 'records' && TYPES[b]) {
     const base = [{ label: 'Research Records' }, { label: TYPES[b].label, to: `/records/${b}` }];
     if (!c) return base;
@@ -90,7 +95,7 @@ function crumbsFor(path, db) {
   if (a === 'repository') return [{ label: 'Analytics' }, { label: 'Repository Search' }];
   if (a === 'maintenance') return [{ label: 'System' }, { label: 'Maintenance', to: '/maintenance' }, ...(MASTERS[b] ? [{ label: MASTERS[b].title }] : [])];
   if (a === 'admin') return [{ label: 'System' }, { label: 'Administration' }, { label: { users: 'Users & Roles', audit: 'Audit Log', settings: 'System Settings' }[b] || '' }].filter((x) => x.label);
-  return [a === 'dashboard' ? { label: 'Dashboard' } : home];
+  return [a === 'dashboard' ? { label: dash } : home];
 }
 
 function Bell({ user, db }) {
@@ -103,23 +108,25 @@ function Bell({ user, db }) {
   }, []);
   const items = useMemo(() => {
     const mine = visibleRecords(db, user);
-    const toReview = mine.filter((r) => canApprove(db, user, r)).map((r) => ({ r, text: 'Awaiting your verification' }));
-    const own = mine.filter((r) => (r.status === 'returned' || r.status === 'pending') && !canApprove(db, user, r) && r.createdBy === user.id)
-      .map((r) => ({ r, text: r.status === 'returned' ? `Returned: ${r.returnReason}` : 'Submitted — awaiting review' }));
-    return [...toReview, ...own];
+    if (isContributor(user)) { // status updates made by a reviewer on my submissions (newest first)
+      const text = { review: 'Now under review', approved: 'Approved', rejected: 'Rejected' };
+      return mine.filter((r) => r.updatedBy !== user.id && r.status !== 'pending').sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 10)
+        .map((r) => ({ r, text: r.status === 'rejected' ? `Rejected: ${r.returnReason}` : text[r.status], alert: r.status === 'rejected' }));
+    }
+    return mine.filter((r) => canApprove(db, user, r)).map((r) => ({ r, text: r.status === 'review' ? 'Under review — decision needed' : 'Awaiting review', alert: true }));
   }, [db, user]);
   return (
     <div ref={ref} style={{ position: 'relative' }}>
-      <button type="button" className="btn" onClick={() => setOpen(!open)} aria-label={`Notifications${items.length ? `, ${items.length} new` : ''}`} aria-expanded={open}
+      <button type="button" className="btn" onClick={() => setOpen(!open)} aria-label={`Notifications${items.length ? `, ${items.length}` : ''}`} aria-expanded={open}
         style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 7, position: 'relative', borderRadius: 6, display: 'flex' }}>
         <Icon name="bell" size={18} color="#5C6B7A" />
-        {items.length > 0 && <span style={{ position: 'absolute', top: 3, right: 3, minWidth: 15, height: 15, padding: '0 3px', background: '#9B1B1B', borderRadius: 8, border: '1.5px solid #fff', color: '#fff', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{items.length}</span>}
+        {items.filter((i) => i.alert).length > 0 && <span style={{ position: 'absolute', top: 3, right: 3, minWidth: 15, height: 15, padding: '0 3px', background: '#9B1B1B', borderRadius: 8, border: '1.5px solid #fff', color: '#fff', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{items.filter((i) => i.alert).length}</span>}
       </button>
       {open && (
         <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 6px)', width: 'min(340px, 92vw)', background: '#fff', border: '1px solid #D9DEE4', borderRadius: 8, boxShadow: '0 8px 28px rgba(0,0,0,.14)', zIndex: 300 }}>
           <div style={{ padding: '12px 16px', borderBottom: '1px solid #F0F2F4', fontWeight: 600, fontSize: 14 }}>Notifications</div>
           <div style={{ maxHeight: 320, overflowY: 'auto' }}>
-            {items.length === 0 && <div style={{ padding: 20, fontSize: 13.5, color: '#5C6B7A', textAlign: 'center' }}>You’re all caught up.</div>}
+            {items.length === 0 && <div style={{ padding: 20, fontSize: 13.5, color: '#5C6B7A', textAlign: 'center' }}>{isContributor(user) ? 'No status updates yet.' : 'You’re all caught up.'}</div>}
             {items.map(({ r, text }) => (
               <Link key={r.id} to={`/records/${r.type}/${r.id}`} onClick={() => setOpen(false)} style={{ display: 'block', padding: '10px 16px', borderBottom: '1px solid #F7F8FA', textDecoration: 'none', color: 'inherit' }}>
                 <div style={{ fontSize: 13.5, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.title}</div>
@@ -208,7 +215,7 @@ export default function Shell() {
   if (!user) return <Navigate to="/login" replace state={{ from: pathname }} />;
   if (!canRoute(user, pathname)) return <Forbidden />;
 
-  const crumbs = crumbsFor(pathname, db);
+  const crumbs = crumbsFor(pathname, db, user);
   const submitSearch = (e) => { e.preventDefault(); if (q.trim()) { navigate(`/repository?q=${encodeURIComponent(q.trim())}`); setQ(''); } else toast('Type a title, author or keyword to search.', 'info'); };
 
   return (
@@ -230,13 +237,13 @@ export default function Shell() {
               </React.Fragment>
             ))}
           </nav>
-          <form onSubmit={submitSearch} className="top-search" role="search">
+          {isContributor(user) ? <div style={{ flex: 1 }} className="top-spacer" /> : <form onSubmit={submitSearch} className="top-search" role="search">
             <div style={{ position: 'relative' }}>
               <Icon name="search" size={15} color="#9CA3AF" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
               <input className="field" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search records…" aria-label="Search the repository"
                 style={{ width: '100%', padding: '7px 12px 7px 32px', border: '1.5px solid #D9DEE4', borderRadius: 6, fontSize: 13, color: '#1F2933', background: '#F7F8FA' }} />
             </div>
-          </form>
+          </form>}
           <Bell user={user} db={db} />
           <UserMenu user={user} />
         </header>

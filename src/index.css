@@ -76,6 +76,7 @@ select, input, textarea, button { font-family: inherit; }
   .topbar { padding: 0 14px; gap: 8px; }
   .top-search { width: auto; flex: 1; min-width: 0; }
   .crumbs { display: none; }
+  .top-spacer { display: none; }
   .page { padding: 20px 16px 40px; }
   .grid-bottom, .report-layout, .repo-layout, .page-form { grid-template-columns: 1fr; }
   .grid-metrics { grid-template-columns: repeat(2, 1fr); }

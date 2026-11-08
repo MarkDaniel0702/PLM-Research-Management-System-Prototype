@@ -4,6 +4,9 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import Shell from './components/Layout.jsx';
 import { ForgotPassword, Login } from './pages/Login.jsx';
 import Dashboard from './pages/Dashboard.jsx';
+import MySubmissions from './pages/MySubmissions.jsx';
+import { getUser, useStore } from './store.js';
+import { isContributor } from './perm.js';
 import RecordsRoute, { RecordFormPage } from './pages/Records.jsx';
 import RecordDetail from './pages/RecordDetail.jsx';
 import Reports from './pages/Reports.jsx';
@@ -12,6 +15,12 @@ import Maintenance from './pages/Maintenance.jsx';
 import Admin from './pages/Admin.jsx';
 import NotFound from './pages/NotFound.jsx';
 
+// Faculty / Student / Employee land on their submission-status page instead of the analytics dashboard.
+function DashboardRoute() {
+  const user = getUser(useStore());
+  return user && isContributor(user) ? <MySubmissions /> : <Dashboard />;
+}
+
 export default function App() {
   return (
     <Routes>
@@ -19,7 +28,7 @@ export default function App() {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route element={<Shell />}>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard" element={<DashboardRoute />} />
         <Route path="/records/:type" element={<RecordsRoute />} />
         <Route path="/records/:type/new" element={<RecordFormPage />} />
         <Route path="/records/:type/:id" element={<RecordDetail />} />

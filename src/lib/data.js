@@ -1,12 +1,12 @@
 import { useState } from 'react';
 // Read-side helpers: lookups, labels, formatting, scoping, search.
-import { TYPES } from '../schema.js';
+import { TYPES, metaOf } from '../schema.js';
 import { canSee, recordCollege } from '../perm.js';
 
 export const byId = (list, id) => list.find((x) => x.id === id);
 export const nameOf = (db, coll, id, field = 'name') => byId(db[coll], id)?.[field] ?? '—';
 
-export const authorList = (db, r) => r.authors.map((id) => byId(db[TYPES[r.type].people], id)).filter(Boolean);
+export const authorList = (db, r) => r.authors.map((id) => byId(db[metaOf(r).people], id)).filter(Boolean);
 export const authorNames = (db, r) => authorList(db, r).map((p) => p.name).join(', ') || '—';
 
 // Short label for the record's classifying unit: college code, or office name for employee research.

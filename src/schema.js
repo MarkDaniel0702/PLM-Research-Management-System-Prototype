@@ -19,12 +19,12 @@ export const TYPES = {
   },
   'presented-papers': {
     id: 'presented-papers', label: 'Presented Papers', singular: 'Presented Paper', short: 'Presented',
-    icon: 'monitor', prefix: 'PP', people: 'faculty', unit: 'college', funding: true, event: true, color: '#C8A12A',
+    icon: 'monitor', prefix: 'PP', people: 'faculty', kinds: true, unit: 'college', funding: true, event: true, color: '#C8A12A',
     layout: 'drawer', peopleLabel: 'Faculty',
   },
   'published-journals': {
     id: 'published-journals', label: 'Published Journals', singular: 'Published Journal', short: 'Journal',
-    icon: 'book-open', prefix: 'PJ', people: 'faculty', unit: 'college', journal: true, color: '#2E7D4F',
+    icon: 'book-open', prefix: 'PJ', people: 'faculty', kinds: true, unit: 'college', journal: true, color: '#2E7D4F',
     layout: 'page', peopleLabel: 'Faculty',
   },
   'student-research': {
@@ -34,6 +34,21 @@ export const TYPES = {
   },
 };
 export const TYPE_LIST = Object.values(TYPES);
+
+// Presented Papers and Published Journals are shared by faculty, students and employees (`kinds: true`):
+// each record carries `authorKind`, which decides the authors' master list and whether it is classified by college or office.
+export const KINDS = {
+  faculty: { unit: 'college', noun: 'author', plural: 'Faculty', kindLabel: 'Faculty' },
+  students: { unit: 'college', noun: 'student', plural: 'Students', kindLabel: 'Student' },
+  employees: { unit: 'office', noun: 'employee', plural: 'Employees', kindLabel: 'Employee' },
+};
+export const ROLE_KIND = { faculty: 'faculty', student: 'students', employee: 'employees' };
+// Type config resolved for one record (people list / unit depend on authorKind for the shared types).
+export const metaOf = (rec) => {
+  const t = TYPES[rec.type];
+  const people = t.kinds ? (rec.authorKind || t.people) : t.people;
+  return { ...t, people, unit: KINDS[people].unit, noun: KINDS[people].noun, plural: KINDS[people].plural, kindLabel: KINDS[people].kindLabel };
+};
 
 // ─── Master data (Maintenance) ─────────────────────────────────────────────────
 // refs: [collection, field, isArray] — where an entry is used. `records` = db.records.
@@ -136,10 +151,12 @@ export const ROLES = {
   auditor: { label: 'Viewer / Auditor', short: 'Auditor' },
 };
 
+// Submission lifecycle: Pending -> Under Review -> Approved | Rejected (a rejected record can be edited and resubmitted as Pending)
 export const STATUS = {
-  verified: { label: 'Verified', variant: 'success' },
-  pending: { label: 'Pending review', variant: 'warning' },
-  returned: { label: 'Returned', variant: 'error' },
+  pending: { label: 'Pending', variant: 'warning', hint: 'Submitted and waiting for a reviewer.' },
+  review: { label: 'Under Review', variant: 'default', hint: 'A reviewer is checking this submission.' },
+  approved: { label: 'Approved', variant: 'success', hint: 'Verified and counted as an official record.' },
+  rejected: { label: 'Rejected', variant: 'error', hint: 'Needs changes: edit and resubmit.' },
 };
 
 // Where reviewers leave suggestions/comments on the hosted prototype (GitHub Issues; needs a free GitHub account).

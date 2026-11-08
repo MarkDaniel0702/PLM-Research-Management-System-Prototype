@@ -128,7 +128,7 @@ function UserModal({ user, me, onClose }) {
 }
 
 // ─── Audit log ─────────────────────────────────────────────────────────────────
-const ACTION_BADGE = { create: 'success', update: 'default', delete: 'error', login: 'muted', logout: 'muted', export: 'gold', verify: 'success', return: 'warning', 'reset-request': 'warning' };
+const ACTION_BADGE = { create: 'success', update: 'default', delete: 'error', login: 'muted', logout: 'muted', export: 'gold', review: 'default', approve: 'success', reject: 'error', 'reset-request': 'warning' };
 
 function AuditLog() {
   const state = useStore();
@@ -214,7 +214,7 @@ function Settings() {
           <FormField label="Idle session timeout (minutes)" required error={errors.idleMinutes} hint="Users are signed out after this much inactivity."><Input type="number" value={s.idleMinutes} onChange={(v) => setS({ ...s, idleMinutes: v })} error={errors.idleMinutes} min="5" max="240" /></FormField>
           <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer', fontSize: 14, lineHeight: 1.45 }}>
             <input type="checkbox" checked={s.verifiedOnly} onChange={(e) => setS({ ...s, verifiedOnly: e.target.checked })} style={{ accentColor: '#1F3A93', marginTop: 3 }} />
-            <span><strong>Official figures only</strong><br /><span style={{ color: '#5C6B7A' }}>Count only verified records in the dashboard and reports; pending and returned submissions are excluded.</span></span>
+            <span><strong>Official figures only</strong><br /><span style={{ color: '#5C6B7A' }}>Count only approved records in the dashboard and reports; pending, under-review and rejected submissions are excluded.</span></span>
           </label>
           <div><Btn type="submit">Save settings</Btn></div>
         </form>

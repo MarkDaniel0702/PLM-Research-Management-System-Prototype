@@ -6,8 +6,8 @@ import ExportMenu from '../components/ExportMenu.jsx';
 import ReviewActions from '../components/Review.jsx';
 import { FormFooter, RecordFields, useRecordForm } from '../components/RecordForm.jsx';
 import { deleteRecord, getUser, useStore } from '../store.js';
-import { STATUS, TYPES } from '../schema.js';
-import { canCreateType, canDelete, canEdit, canReports } from '../perm.js';
+import { KINDS, STATUS, TYPES, metaOf } from '../schema.js';
+import { canCreateType, canDelete, canEdit, canReports, isContributor } from '../perm.js';
 import { authorNames, byId, collegeAbbr, editPath, indexOf, matchesQuery, nameOf, newPath, semesterName, unitLabel, useSessionState, visibleRecords } from '../lib/data.js';
 import { tableFor } from '../lib/columns.js';
 import NotFound from './NotFound.jsx';
@@ -32,7 +32,7 @@ function RecordList({ type }) {
   const [params, setParams] = useSearchParams();
   const [shared, setShared] = useSessionState('plm-list-filters', { year: '', semester: '' });
   const [q, setQ] = useState('');
-  const [f, setF] = useState({ unit: '', indexing: '', funding: '', status: '', mine: false });
+  const [f, setF] = useState({ unit: '', kind: '', indexing: '', funding: '', status: '' });
   const [sort, setSort] = useState({ key: 'createdAt', dir: 'desc' });
   const [page, setPage] = useState(1);
   const [size, setSize] = useState(10);
@@ -46,14 +46,14 @@ function RecordList({ type }) {
     let r = all.filter((x) => (!shared.year || x.year === shared.year) && (!shared.semester || x.semester === shared.semester)
       && (!f.unit || (isOffice ? x.office === f.unit : x.college === f.unit)) && (!f.indexing || x.indexing === f.indexing)
       && (!f.funding || (f.funding === 'yes') === !!x.funded) && (!f.status || x.status === f.status)
-      && (!f.mine || (user.personId && x.authors.includes(user.personId)) || x.createdBy === user.id) && (!q || matchesQuery(db, x, q)));
+      && (!f.kind || metaOf(x).people === f.kind) && (!q || matchesQuery(db, x, q)));
     const g = SORTS[sort.key];
     r = [...r].sort((a, b) => { const av = g(db, a); const bv = g(db, b); return (av < bv ? -1 : av > bv ? 1 : 0) * (sort.dir === 'asc' ? 1 : -1); });
     return r;
   }, [all, shared, f, q, sort, db, user, isOffice]);
   const paged = rows.slice((page - 1) * size, page * size);
-  const hasFilters = q || shared.year || shared.semester || f.unit || f.indexing || f.funding || f.status || f.mine;
-  const clear = () => { setQ(''); setShared({ year: '', semester: '' }); setF({ unit: '', indexing: '', funding: '', status: '', mine: false }); setPage(1); };
+  const hasFilters = q || shared.year || shared.semester || f.unit || f.indexing || f.funding || f.status || f.kind;
+  const clear = () => { setQ(''); setShared({ year: '', semester: '' }); setF({ unit: '', kind: '', indexing: '', funding: '', status: '' }); setPage(1); };
   const upd = (patch) => { setF((p) => ({ ...p, ...patch })); setPage(1); };
   const toggleSort = (key) => setSort((s) => (s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: key === 'createdAt' ? 'desc' : 'asc' }));
 
@@ -93,20 +93,20 @@ function RecordList({ type }) {
 
   return (
     <div className="page">
-      <PageHeader title={t.label} subtitle={`${all.length} record${all.length === 1 ? '' : 's'} you can access${user.role === 'auditor' ? ' · read-only access' : ''}`}
+      <PageHeader title={t.label} subtitle={isContributor(user) ? `${all.length} of your own submission${all.length === 1 ? '' : 's'}` : `${all.length} record${all.length === 1 ? '' : 's'} you can access${user.role === 'auditor' ? ' · read-only access' : ''}`}
         actions={<>{canReports(user) && <ExportMenu build={exportSpec} />}{canAdd && <Btn icon="plus" to={newPath(type)}>Add {t.singular}</Btn>}</>} />
 
       <div className="filter-bar" role="search" aria-label={`Filter ${t.label}`}>
         <SearchInput value={q} onChange={(v) => { setQ(v); setPage(1); }} placeholder="Search title, author, keyword…" style={{ flex: '1 1 200px', minWidth: 180 }} aria-label="Search records" />
-        {user.role !== 'coordinator' && (isOffice
+        {user.role !== 'coordinator' && !isContributor(user) && (isOffice
           ? <FilterSelect value={f.unit} onChange={(v) => upd({ unit: v })} placeholder="All offices" options={db.offices.map((o) => ({ value: o.id, label: o.name }))} />
           : <FilterSelect value={f.unit} onChange={(v) => upd({ unit: v })} placeholder="All colleges" options={db.colleges.map((c) => ({ value: c.id, label: `${c.abbr} — ${c.name}` }))} />)}
+        {t.kinds && !isContributor(user) && <FilterSelect value={f.kind} onChange={(v) => upd({ kind: v })} placeholder="All author types" options={Object.entries(KINDS).map(([value, k]) => ({ value, label: k.kindLabel }))} />}
         <FilterSelect value={shared.semester} onChange={(v) => { setShared({ semester: v }); setPage(1); }} placeholder="All semesters" options={db.semesters.map((s) => ({ value: s.id, label: s.name }))} />
         <FilterSelect value={shared.year} onChange={(v) => { setShared({ year: v }); setPage(1); }} placeholder="All years" options={db.academicYears.map((y) => y.label)} />
         {t.journal && <FilterSelect value={f.indexing} onChange={(v) => upd({ indexing: v })} placeholder="All indexing" options={db.indexing.map((i) => ({ value: i.id, label: i.name }))} />}
         {t.funding && <FilterSelect value={f.funding} onChange={(v) => upd({ funding: v })} placeholder="Any funding" options={[{ value: 'yes', label: 'Funded' }, { value: 'no', label: 'Unfunded' }]} />}
         {user.role !== 'auditor' && <FilterSelect value={f.status} onChange={(v) => upd({ status: v })} placeholder="All statuses" options={Object.entries(STATUS).map(([k, s]) => ({ value: k, label: s.label }))} />}
-        {user.role === 'faculty' && <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, cursor: 'pointer' }}><input type="checkbox" checked={f.mine} onChange={(e) => upd({ mine: e.target.checked })} style={{ accentColor: '#1F3A93' }} />My records only</label>}
         {hasFilters && <button type="button" onClick={clear} style={{ fontSize: 13, color: '#9B1B1B', background: 'none', border: 'none', cursor: 'pointer', padding: '7px 8px', display: 'flex', alignItems: 'center', gap: 4 }}><Icon name="x" size={12} color="#9B1B1B" /> Clear filters</button>}
         <span style={{ marginLeft: 'auto', fontSize: 13, color: '#5C6B7A' }}>{rows.length} result{rows.length === 1 ? '' : 's'}</span>
       </div>
@@ -124,7 +124,7 @@ function RecordList({ type }) {
                 <thead>
                   <tr>
                     <Th k="title" label="Title" />
-                    <Th k="authors" label={t.people === 'students' ? 'Students' : t.people === 'employees' ? 'Employees' : 'Authors'} />
+                    <Th k="authors" label={t.kinds ? 'Authors' : t.people === 'students' ? 'Students' : t.people === 'employees' ? 'Employees' : 'Authors'} />
                     <Th k="unit" label={isOffice ? 'Office' : 'College'} />
                     {t.journal && <><Th k="indexing" label="Indexing" /><th>DOI</th></>}
                     {t.funding && <Th k="funded" label="Funding" />}
@@ -142,13 +142,13 @@ function RecordList({ type }) {
                         {t.journal && <div style={{ fontSize: 12, color: '#5C6B7A', marginTop: 2 }} className="clip">{r.journal}</div>}
                         {t.event && <div style={{ fontSize: 12, color: '#5C6B7A', marginTop: 2 }} className="clip">{r.event}</div>}
                       </td>
-                      <td style={{ color: '#5C6B7A', fontSize: 13 }}><span className="clip" style={{ display: 'block', maxWidth: 200 }} title={authorNames(db, r)}>{authorNames(db, r)}</span></td>
+                      <td style={{ color: '#5C6B7A', fontSize: 13 }}><span className="clip" style={{ display: 'block', maxWidth: 200 }} title={authorNames(db, r)}>{authorNames(db, r)}</span>{t.kinds && !isContributor(user) && <Badge variant="muted" style={{ marginTop: 3 }}>{KINDS[metaOf(r).people].kindLabel}</Badge>}</td>
                       <td><Badge>{unitLabel(db, r)}</Badge></td>
                       {t.journal && <><td><IndexBadge idx={indexOf(db, r.indexing)} /></td><td>{r.doi ? <a href={`https://doi.org/${r.doi}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13 }}>{r.doi}</a> : '—'}</td></>}
                       {t.funding && <td><Badge variant={r.funded ? 'funded' : 'unfunded'}>{r.funded ? 'Funded' : 'Unfunded'}</Badge></td>}
                       {t.course && <><td style={{ fontSize: 13, color: '#5C6B7A' }}>{nameOf(db, 'courses', r.course, 'code')}</td><td className="num" style={{ color: '#5C6B7A' }}>{r.authors.length}</td></>}
                       <td style={{ fontSize: 13, color: '#5C6B7A', whiteSpace: 'nowrap' }}>{r.year}<br /><span style={{ fontSize: 12 }}>{semesterName(db, r.semester)}</span></td>
-                      <td><Badge variant={STATUS[r.status].variant}>{STATUS[r.status].label}</Badge></td>
+                      <td><Badge variant={STATUS[r.status].variant}>{STATUS[r.status].label}</Badge>{r.status === 'rejected' && r.returnReason && <div className="clip" style={{ fontSize: 12, color: '#9B1B1B', marginTop: 3, maxWidth: 200 }} title={r.returnReason}>{r.returnReason}</div>}</td>
                       <td>
                         <div style={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
                           <ReviewActions rec={r} compact />

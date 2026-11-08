@@ -67,34 +67,43 @@ const REPORTS = [
       return { head: ['Faculty member', 'College', 'Faculty Research', 'Presented Papers', 'Published Journals', 'Total'], rows: out, subs, totals: ['TOTAL', '', ...tot],
         note: 'A multi-author output counts once for each author.' };
     } },
-  { id: 'per-student', code: 'R-03 · R-07', label: 'Research per Student', desc: 'Student research by student, college and course.',
+  { id: 'per-student', code: 'R-03 · R-07', label: 'Research per Student', desc: 'Student outputs by student, college and course.',
     build({ db, rows }) {
-      const out = []; const subs = new Set(); let total = 0;
+      const out = []; const subs = new Set(); let tot = [0, 0, 0, 0];
       db.colleges.forEach((c) => {
-        const lines = db.students.filter((s) => s.college === c.id).map((s) => ({ s, n: count(rows, (r) => r.type === 'student-research' && r.authors.includes(s.id)) })).filter((l) => l.n).sort((a, b) => b.n - a.n);
+        const lines = db.students.filter((st) => st.college === c.id).map((st) => {
+          const mine = rows.filter((r) => r.authors.includes(st.id));
+          return { st, n: ['student-research', 'presented-papers', 'published-journals'].map((t) => byType(mine, t)), total: mine.length };
+        }).filter((l) => l.total).sort((x, y) => y.total - x.total);
         if (!lines.length) return;
-        lines.forEach((l) => out.push([l.s.name, l.s.studentNo, c.abbr, nameOf(db, 'courses', l.s.course, 'code'), l.n]));
-        const sub = lines.reduce((s, l) => s + l.n, 0);
-        subs.add(out.length); out.push([`${c.abbr} subtotal`, '', '', '', sub]); total += sub;
+        lines.forEach((l) => out.push([l.st.name, l.st.studentNo, c.abbr, nameOf(db, 'courses', l.st.course, 'code'), ...l.n, l.total]));
+        const sub = [0, 1, 2, 3].map((i) => lines.reduce((sum, l) => sum + (i < 3 ? l.n[i] : l.total), 0));
+        subs.add(out.length); out.push([`${c.abbr} subtotal`, '', '', '', ...sub]); tot = tot.map((v, i) => v + sub[i]);
       });
-      return { head: ['Student', 'Student no.', 'College', 'Course', 'Student Research'], rows: out, subs, totals: ['TOTAL', '', '', '', total] };
+      return { head: ['Student', 'Student no.', 'College', 'Course', 'Student Research', 'Presented Papers', 'Published Journals', 'Total'], rows: out, subs, totals: ['TOTAL', '', '', '', ...tot],
+        note: 'A multi-author output counts once for each author.' };
     } },
-  { id: 'per-office', code: 'Employee', label: 'Research per Office', desc: 'Employee research by office and office category.',
+  { id: 'per-office', code: 'Employee', label: 'Research per Office', desc: 'Employee outputs by office and office category.',
     build({ db, rows }) {
-      const er = rows.filter((r) => r.type === 'employee-research');
-      const lines = db.offices.map((o) => { const rs = er.filter((r) => r.office === o.id); return { o, rs }; }).filter((l) => l.rs.length).sort((a, b) => b.rs.length - a.rs.length);
+      const er = rows.filter((r) => r.office);
+      const lines = db.offices.map((o) => ({ o, rs: er.filter((r) => r.office === o.id) })).filter((l) => l.rs.length).sort((x, y) => y.rs.length - x.rs.length);
       return {
-        head: ['Office', 'Category', 'Employee Research', 'Funded', 'Employees involved'],
-        rows: lines.map((l) => [l.o.name, l.o.category, l.rs.length, count(l.rs, (r) => r.funded), new Set(l.rs.flatMap((r) => r.authors)).size]),
-        totals: ['TOTAL', '', er.length, count(er, (r) => r.funded), new Set(er.flatMap((r) => r.authors)).size],
-        chart: lines.length ? { type: 'bar', summary: `Bar chart of employee research per office: ${lines.map((l) => `${l.o.code} ${l.rs.length}`).join(', ')}`,
+        head: ['Office', 'Category', 'Employee Research', 'Presented Papers', 'Published Journals', 'Total', 'Funded'],
+        rows: lines.map((l) => [l.o.name, l.o.category, byType(l.rs, 'employee-research'), byType(l.rs, 'presented-papers'), byType(l.rs, 'published-journals'), l.rs.length, count(l.rs, (r) => r.funded)]),
+        totals: ['TOTAL', '', byType(er, 'employee-research'), byType(er, 'presented-papers'), byType(er, 'published-journals'), er.length, count(er, (r) => r.funded)],
+        chart: lines.length ? { type: 'bar', summary: `Bar chart of employee outputs per office: ${lines.map((l) => `${l.o.code} ${l.rs.length}`).join(', ')}`,
           data: { labels: lines.map((l) => l.o.code), datasets: [{ data: lines.map((l) => l.rs.length), backgroundColor: '#9B1B1B', borderRadius: 4 }] } } : null,
       };
     } },
-  { id: 'per-employee', code: 'Employee', label: 'Research per Employee', desc: 'Employee research by person and office.',
+  { id: 'per-employee', code: 'Employee', label: 'Research per Employee', desc: 'Employee outputs by person and office.',
     build({ db, rows }) {
-      const lines = db.employees.map((e) => ({ e, n: count(rows, (r) => r.type === 'employee-research' && r.authors.includes(e.id)) })).filter((l) => l.n).sort((a, b) => b.n - a.n);
-      return { head: ['Employee', 'Employee ID', 'Office', 'Position', 'Employee Research'], rows: lines.map((l) => [l.e.name, l.e.employeeNo, nameOf(db, 'offices', l.e.office), l.e.position, l.n]), totals: ['TOTAL', '', '', '', lines.reduce((s, l) => s + l.n, 0)] };
+      const lines = db.employees.map((e) => {
+        const mine = rows.filter((r) => r.authors.includes(e.id));
+        return { e, n: ['employee-research', 'presented-papers', 'published-journals'].map((t) => byType(mine, t)), total: mine.length };
+      }).filter((l) => l.total).sort((x, y) => y.total - x.total);
+      return { head: ['Employee', 'Employee ID', 'Office', 'Employee Research', 'Presented Papers', 'Published Journals', 'Total'],
+        rows: lines.map((l) => [l.e.name, l.e.employeeNo, nameOf(db, 'offices', l.e.office), ...l.n, l.total]),
+        totals: ['TOTAL', '', '', ...[0, 1, 2].map((i) => lines.reduce((sum, l) => sum + l.n[i], 0)), lines.reduce((sum, l) => sum + l.total, 0)] };
     } },
   { id: 'by-index', code: 'R-09', label: 'By Indexing Category', desc: 'Published journals grouped by index, with share of total.',
     build({ db, rows }) {

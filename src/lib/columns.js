@@ -1,5 +1,5 @@
 // One definition of every exportable/selectable record column (list export, custom report builder).
-import { TYPES, STATUS } from '../schema.js';
+import { KINDS, TYPES, STATUS, metaOf } from '../schema.js';
 import { agencyName, authorNames, fmtDate, indexOf, nameOf, semesterName, unitLabel, userName } from './data.js';
 
 export const COLUMNS = {
@@ -7,6 +7,7 @@ export const COLUMNS = {
   type: { label: 'Type', get: (db, r) => TYPES[r.type].singular },
   title: { label: 'Title', get: (db, r) => r.title },
   authors: { label: 'Authors', get: (db, r) => authorNames(db, r) },
+  authorKind: { label: 'Author Type', get: (db, r) => KINDS[metaOf(r).people].kindLabel },
   numAuthors: { label: '# Authors', get: (db, r) => r.authors.length },
   unit: { label: 'College / Office', get: (db, r) => unitLabel(db, r) },
   course: { label: 'Course', get: (db, r) => (r.course ? nameOf(db, 'courses', r.course, 'code') : '') },
@@ -33,10 +34,10 @@ const common = ['id', 'title', 'authors', 'numAuthors', 'unit', 'year', 'semeste
 export const TYPE_COLUMNS = {
   'faculty-research': [...common, 'funded', 'fundingAgency', 'status', 'createdBy', 'createdAt'],
   'employee-research': [...common, 'funded', 'fundingAgency', 'status', 'createdBy', 'createdAt'],
-  'presented-papers': [...common, 'event', 'venue', 'eventDate', 'funded', 'fundingAgency', 'status', 'createdBy', 'createdAt'],
-  'published-journals': [...common, 'journal', 'issn', 'volume', 'yearPublished', 'doi', 'indexing', 'status', 'createdBy', 'createdAt'],
+  'presented-papers': [...common.slice(0, 3), 'authorKind', ...common.slice(3), 'event', 'venue', 'eventDate', 'funded', 'fundingAgency', 'status', 'createdBy', 'createdAt'],
+  'published-journals': [...common.slice(0, 3), 'authorKind', ...common.slice(3), 'journal', 'issn', 'volume', 'yearPublished', 'doi', 'indexing', 'status', 'createdBy', 'createdAt'],
   'student-research': [...common, 'course', 'status', 'createdBy', 'createdAt'],
-  all: ['id', 'type', 'title', 'authors', 'unit', 'year', 'semester', 'status', 'createdBy', 'createdAt'],
+  all: ['id', 'type', 'title', 'authors', 'authorKind', 'unit', 'year', 'semester', 'status', 'createdBy', 'createdAt'],
 };
 
 // Build export-ready head + rows for a set of records

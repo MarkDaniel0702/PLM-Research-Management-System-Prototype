@@ -1,9 +1,9 @@
 // Realistic sample data for the prototype. Rebuilt by "Reset demo data" in Administration → Settings.
-import { TYPES } from './schema.js';
+import { KINDS, TYPES } from './schema.js';
 
 const a = (arr) => arr.map((x) => ({ ...x, active: true }));
 
-export const SEED_VERSION = 3;
+export const SEED_VERSION = 4;
 
 export function makeSeed() {
   const now = Date.now();
@@ -109,6 +109,9 @@ export function makeSeed() {
     { id: 'u-faculty', name: 'Dr. Maria Santos', email: 'msantos@plm.edu.ph', password: 'Faculty@123', role: 'faculty', personId: 'f1', status: 'active' },
     { id: 'u-student', name: 'Aira Valdez', email: 'avaldez@plm.edu.ph', password: 'Student@123', role: 'student', personId: 's1', status: 'active' },
     { id: 'u-employee', name: 'Ms. Marites Dela Cruz', email: 'mdelacruz@plm.edu.ph', password: 'Employee@123', role: 'employee', personId: 'e1', status: 'active' },
+    { id: 'u-faculty2', name: 'Dr. Jose Reyes', email: 'jreyes@plm.edu.ph', password: 'Faculty@123', role: 'faculty', personId: 'f2', status: 'active' },
+    { id: 'u-student2', name: 'Andrei Reyes', email: 'areyes@plm.edu.ph', password: 'Student@123', role: 'student', personId: 's10', status: 'active' },
+    { id: 'u-employee2', name: 'Mr. Eduardo Santos', email: 'esantos@plm.edu.ph', password: 'Employee@123', role: 'employee', personId: 'e2', status: 'active' },
     { id: 'u-audit', name: 'Auditor Account', email: 'audit@plm.edu.ph', password: 'Audit@123', role: 'auditor', status: 'active' },
     { id: 'u-former', name: 'Dr. Former Faculty', email: 'former.faculty@plm.edu.ph', password: 'Faculty@123', role: 'faculty', personId: 'f16', status: 'inactive' },
   ].map((u) => ({ college: null, personId: null, lastLogin: null, ...u }));
@@ -129,18 +132,18 @@ export function makeSeed() {
     ['Bioactive Compounds in Philippine Seaweed Extracts for Wound Healing', ['f2', 'f10'], '2023-2024', 'sem2', 'fa-chedzrc'],
     ['Development of AI-Based Flood Prediction System for Metro Manila', ['f1', 'f9'], '2024-2025', 'sem1', 'fa-dost'],
     ['Machine Learning Applications in Philippine K-12 Assessment', ['f5', 'f11'], '2024-2025', 'sem1', null],
-    ['Phytochemical Properties of Selected Philippine Medicinal Herbs', ['f2', 'f10'], '2024-2025', 'sem1', 'fa-chedzrc'],
+    ['Phytochemical Properties of Selected Philippine Medicinal Herbs', ['f2', 'f10'], '2024-2025', 'sem1', 'fa-chedzrc', { status: 'rejected', returnReason: 'The co-author list is incomplete. Please confirm all contributors and resubmit.' }],
     ['Effectiveness of Problem-Based Learning in Nursing Education', ['f8', 'f13'], '2024-2025', 'sem1', null],
-    ['Renewable Energy Integration in Urban Philippine Communities', ['f1', 'f9'], '2024-2025', 'sem2', 'fa-doe'],
+    ['Renewable Energy Integration in Urban Philippine Communities', ['f1', 'f9'], '2024-2025', 'sem2', 'fa-doe', { status: 'review' }],
     ['Legal Framework for AI Regulation in the Philippines', ['f7'], '2024-2025', 'sem1', null],
     ['Mental Health Outcomes of Urban Youth in Post-Pandemic Manila', ['f8'], '2024-2025', 'sem2', 'fa-doh'],
     ['Smart Waste Management Systems for Philippine Local Government Units', ['f9'], '2024-2025', 'sem1', null],
     ['Large Language Models for Filipino Legal Document Summarization', ['f5', 'f7'], '2025-2026', 'sem1', 'fa-plm'],
-    ['Microplastic Contamination in Manila Bay Sediments', ['f2'], '2025-2026', 'sem1', 'fa-dost'],
+    ['Microplastic Contamination in Manila Bay Sediments', ['f2'], '2025-2026', 'sem1', 'fa-dost', { status: 'review' }],
     ['Digital Payment Adoption Among Public Market Vendors in Manila', ['f14', 'f4'], '2025-2026', 'sem1', null, { hours: 30 }],
     ['Solar-Powered Microgrid Design for Barangay Evacuation Centers', ['f1', 'f9'], '2025-2026', 'sem1', 'fa-doe', { status: 'pending', hours: 2 }],
     ['Flood Early-Warning Sensor Network Calibration for the Marikina River Basin', ['f1', 'f9'], '2025-2026', 'sem2', null,
-      { status: 'returned', returnReason: 'Please confirm whether this study received DOST support before resubmitting.', hours: 100 }],
+      { status: 'rejected', returnReason: 'Please confirm whether this study received DOST support before resubmitting.', hours: 100 }],
   ];
   const ER = [
     ['Digital Records Management Practices in the University Accounting Office', ['e1'], 'acct', '2024-2025', 'sem1', null],
@@ -152,6 +155,7 @@ export function makeSeed() {
     ['Telework Adoption in University Administrative Offices', ['e6'], 'hr', '2022-2023', 'sem2', null],
     ['Energy Use Behavior of Non-Teaching Personnel in the Engineering Building', ['e9'], 'cetd', '2025-2026', 'sem1', null],
     ['Accounting Controls for Research Grant Disbursement', ['e1', 'e7'], 'acct', '2025-2026', 'sem1', 'fa-dost', { status: 'pending', hours: 5 }],
+    ['Night-Shift Guard Fatigue and Incident Response', ['e2'], 'sec', '2025-2026', 'sem1', null],
   ];
   const PP = [
     ['Towards a Smart Water Management System for Philippine Urban Areas', ['f1'], '2024-2025', 'sem1', 'fa-plm', 'International Conference on Information Technology and Engineering Innovation Systems (ICTEIS)', 'Manila, Philippines', '2024-11-15'],
@@ -177,7 +181,7 @@ export function makeSeed() {
     ["Nurses' Burnout and Turnover Intention During COVID-19: A Philippine Hospital Study", ['f8'], '2024-2025', 'sem1', 'Journal of Nursing Management', '0966-0429', '32', 2024, '10.1111/jonm.13956', 'wos'],
     ['Mother Tongue-Based Multilingual Education: Outcomes in Early Grades in Luzon', ['f6'], '2023-2024', 'sem2', 'International Journal of Bilingual Education and Bilingualism', '1367-0050', '27', 2024, '10.1080/13670050.2024.2290345', 'ched'],
     ['Decolonization Narratives in 21st-Century Filipino Graphic Novels', ['f3'], '2024-2025', 'sem1', 'Philippine Journal of Linguistics', '0048-3796', '54', 2024, '10.55944/pjl.54.2024.01', 'others'],
-    ['Antioxidant Activity of Philippine Seaweed Extracts', ['f2', 'f10'], '2024-2025', 'sem2', 'Marine Drugs', '1660-3397', '22', 2025, '10.3390/md22010045', 'scopus'],
+    ['Antioxidant Activity of Philippine Seaweed Extracts', ['f2', 'f10'], '2024-2025', 'sem2', 'Marine Drugs', '1660-3397', '22', 2025, '10.3390/md22010045', 'scopus', { status: 'pending' }],
     ['UAV Photogrammetry for Condition Assessment of Heritage Structures', ['f1', 'f9'], '2024-2025', 'sem2', 'Journal of Cultural Heritage', '1296-2074', '65', 2025, '10.1016/j.culher.2024.11.003', 'wos'],
     ['Code-Switching Detection in Filipino Social Media Text', ['f5'], '2025-2026', 'sem1', 'Language Resources and Evaluation', '1574-020X', '59', 2025, '10.1007/s10579-025-09801-2', 'scopus'],
     ['Interprofessional Simulation Training in Philippine Nursing Schools', ['f8', 'f13'], '2025-2026', 'sem1', 'Nurse Education Today', '0260-6917', '147', 2025, '10.1016/j.nedt.2025.106301', 'scopus', { hours: 75 }],
@@ -195,11 +199,54 @@ export function makeSeed() {
     ["Nurses' Perceptions of Telehealth Among Barangay Health Workers", ['s17', 's18'], '2025-2026', 'sem1'],
     ['Chatbot-Based Enrollment Assistant for PLM Students', ['s1', 's21'], '2025-2026', 'sem1', { status: 'pending', hours: 27 }],
     ['Lifestyle Factors and Cardiorespiratory Fitness of PLM Student-Athletes', ['s19'], '2025-2026', 'sem1'],
-    ['Structural Health Monitoring of Pedestrian Footbridges Using Low-Cost Sensors', ['s20', 's10'], '2025-2026', 'sem1'],
+    ['Structural Health Monitoring of Pedestrian Footbridges Using Low-Cost Sensors', ['s20', 's10'], '2025-2026', 'sem1', { status: 'review' }],
     ['Rapid Detection of Heavy Metals in Tap Water Using Colorimetric Assays', ['s22'], '2022-2023', 'sem2'],
     ['Parasocial Relationships and Brand Loyalty Among Gen Z Consumers', ['s14'], '2022-2023', 'sem1'],
     ['Language Attitudes Toward Filipino Among Senior High School Students', ['s6', 's7'], '2021-2022', 'sem2'],
     ['Smart Parking Management Prototype for PLM Campus', ['s2', 's21'], '2023-2024', 'sem1'],
+  ];
+
+
+  // Student and employee Presented Papers / Published Journals (shared types, per-record author kind)
+  // [title, authors, ay, sem, funding, event, venue, date, extras]
+  const SPP = [
+    ['Plant Disease Detection on Low-Cost Mobile Devices', ['s1', 's2'], '2024-2025', 'sem2', null, 'Philippine Student Computing Symposium', 'Quezon City, Philippines', '2025-03-08'],
+    ['Chatbot Design for University Enrollment Queries', ['s1', 's21'], '2025-2026', 'sem1', 'fa-plm', 'ASEAN Student Research Forum', 'Bangkok, Thailand', '2025-10-24', { status: 'review' }],
+    ['Gamified Learning of Algorithms for Senior High School', ['s1'], '2025-2026', 'sem2', null, 'National Youth Innovation Summit', 'Cebu City, Philippines', '2026-02-14', { status: 'pending', hours: 20 }],
+    ['Low-Cost Strain Sensors for Footbridge Monitoring', ['s10', 's20'], '2025-2026', 'sem1', 'fa-plm', 'Engineering Students Congress', 'Manila, Philippines', '2025-11-07'],
+    ['Solar Roof Feasibility for Public Schools', ['s10', 's11'], '2023-2024', 'sem2', null, 'Philippine Renewable Energy Student Conference', 'Iloilo City, Philippines', '2024-04-19'],
+    ['Microgrid Load Forecasting with Simple Regression Models', ['s10'], '2025-2026', 'sem2', null, 'IEEE Student Branch Congress', 'Taipei, Taiwan', '2026-03-28', { status: 'pending', hours: 8 }],
+    ['Social Media Use and Study Habits Among College Freshmen', ['s6', 's7'], '2024-2025', 'sem1', null, 'Asian Communication Students Forum', 'Singapore', '2024-11-02'],
+    ['Biochar Filters for Household Water Treatment', ['s15', 's16'], '2024-2025', 'sem1', 'fa-dostpchrd', 'National Science Students Congress', 'Baguio City, Philippines', '2024-12-05'],
+  ];
+  // [title, authors, ay, sem, journal, issn, volume, year, doi, indexing, extras]
+  const SPJ = [
+    ['Comparing Lightweight CNN Models for Leaf Disease Classification', ['s1', 's2'], '2025-2026', 'sem1', 'Philippine Journal of Science and Computing', '0031-7683', '154', 2025, '', 'ched', { status: 'review' }],
+    ['Student Perceptions of AI Chatbots in University Services', ['s1'], '2025-2026', 'sem2', 'Journal of Educational Technology Research', '1738-6284', '12', 2026, '10.1000/jetr.2026.12.3', 'others',
+      { status: 'rejected', returnReason: 'The DOI does not match the stated article. Please check it and resubmit.', hours: 60 }],
+    ['Low-Cost Sensor Networks for Pedestrian Bridge Monitoring', ['s10', 's20'], '2025-2026', 'sem2', 'Philippine Engineering Journal', '0115-6179', '46', 2026, '', 'ched',
+      { status: 'rejected', returnReason: 'The ISSN does not match the journal. Please verify it and resubmit.', hours: 90 }],
+    ['Peer Tutoring and Math Anxiety in Grade 7', ['s4', 's5'], '2024-2025', 'sem2', 'Education Research Journal of the Philippines', '1908-3429', '9', 2025, '', 'ched'],
+    ['Coconut Shell Biochar as an Antimicrobial Agent', ['s15', 's16'], '2024-2025', 'sem2', 'Philippine Journal of Biological Sciences', '1655-4421', '28', 2025, '', 'others'],
+  ];
+  // [title, authors, office, ay, sem, funding, event, venue, date, extras]
+  const EPP = [
+    ['Paperless Accounting Workflows in State Universities', ['e1'], 'acct', '2024-2025', 'sem2', null, 'National Public Finance Conference', 'Pasay City, Philippines', '2025-03-20'],
+    ['Internal Controls for Research Grant Disbursement', ['e1', 'e7'], 'acct', '2025-2026', 'sem1', 'fa-plm', 'Philippine Institute of Accountants Convention', 'Cebu City, Philippines', '2025-11-13', { status: 'review' }],
+    ['Digitizing Employee Service Records', ['e1'], 'acct', '2025-2026', 'sem2', null, 'Government Records Management Forum', 'Davao City, Philippines', '2026-02-27', { status: 'pending', hours: 14 }],
+    ['Incident Reporting Practices of University Guards', ['e2', 'e8'], 'sec', '2024-2025', 'sem1', null, 'National Campus Security Summit', 'Pasig City, Philippines', '2024-10-18'],
+    ['Visitor Management Systems for Open Campuses', ['e2'], 'sec', '2025-2026', 'sem1', null, 'ASEAN Safety and Security Conference', 'Kuala Lumpur, Malaysia', '2025-10-09',
+      { status: 'rejected', returnReason: 'Please complete the venue details and confirm the event date.', hours: 70 }],
+    ['Emergency Evacuation Drills Compliance in Campus Buildings', ['e2', 'e4'], 'sec', '2025-2026', 'sem2', null, 'Disaster Preparedness Expo', 'Manila, Philippines', '2026-03-05', { status: 'pending', hours: 11 }],
+    ['Open Access Services for Faculty Researchers', ['e5'], 'lib', '2025-2026', 'sem1', 'fa-chedphedf', 'Philippine Librarians Congress', 'Tagaytay City, Philippines', '2025-09-30'],
+    ['Waste Segregation Compliance in Campus Buildings', ['e4', 'e10'], 'maint', '2024-2025', 'sem2', null, 'Environmental Management Forum', 'Manila, Philippines', '2025-04-08'],
+  ];
+  // [title, authors, office, ay, sem, journal, issn, volume, year, doi, indexing, extras]
+  const EPJ = [
+    ['Records Digitization and Audit Readiness in Public Universities', ['e1'], 'acct', '2025-2026', 'sem1', 'Philippine Journal of Public Administration', '0031-7675', '69', 2025, '', 'ched',
+      { status: 'rejected', returnReason: 'Please add the journal volume and confirm the ISSN before resubmitting.', hours: 45 }],
+    ['Campus Security Perceptions Among Students and Staff', ['e2', 'e8'], 'sec', '2024-2025', 'sem2', 'Journal of Safety and Security Studies', '1550-7394', '11', 2025, '10.1000/jsss.2025.11.2', 'others', { status: 'review' }],
+    ['Information Literacy Support for Early-Career Researchers', ['e5', 'e7'], 'lib', '2025-2026', 'sem1', 'Journal of Philippine Librarianship', '0115-9251', '44', 2025, '', 'ched', { status: 'review' }],
   ];
 
   const dateFor = (ay, sem, n) => {
@@ -210,28 +257,31 @@ export function makeSeed() {
     return d.toISOString();
   };
   const personCollege = (list, id) => list.find((p) => p.id === id);
-  const creatorOf = (lead, college) => (lead === 'f1' ? 'u-faculty' : lead === 's1' ? 'u-student' : lead === 'e1' ? 'u-employee'
-    : college === 'cet' && lead === 'f9' ? 'u-cet' : college === 'ccss' ? 'u-ccss' : 'u-admin');
+  const OWNER = { f1: 'u-faculty', f2: 'u-faculty2', s1: 'u-student', s10: 'u-student2', e1: 'u-employee', e2: 'u-employee2' };
+  const creatorOf = (lead, college) => OWNER[lead] || (college === 'cet' && lead === 'f9' ? 'u-cet' : college === 'ccss' ? 'u-ccss' : 'u-admin');
 
   const counters = {};
   const records = [];
   const push = (type, o, n, extras = {}) => {
     const t = TYPES[type];
     counters[type] = (counters[type] || 0) + 1;
-    const people = { faculty, students, employees }[t.people];
+    const kind = t.kinds ? (o.kind || t.people) : t.people;
+    const byOffice = KINDS[kind].unit === 'office';
+    const people = { faculty, students, employees }[kind];
     const lead = personCollege(people, o.authors[0]);
     const college = o.college !== undefined ? o.college : lead.college;
     const createdBy = creatorOf(o.authors[0], college);
     const createdAt = extras.hours ? hoursAgo(extras.hours) : dateFor(o.year, o.semester, n);
     records.push({
       id: `${t.prefix}-${String(counters[type]).padStart(4, '0')}`, type, title: o.title, authors: o.authors,
-      college: t.unit === 'office' ? null : college, office: t.unit === 'office' ? o.office : null,
+      authorKind: t.kinds ? kind : null,
+      college: byOffice ? null : college, office: byOffice ? o.office : null,
       course: o.course || null, year: o.year, semester: o.semester,
       funded: !!o.fundingAgency, fundingAgency: o.fundingAgency || null,
       event: o.event || '', venue: o.venue || '', eventDate: o.eventDate || '',
       journal: o.journal || '', issn: o.issn || '', volume: o.volume || '', yearPublished: o.yearPublished || null,
       doi: o.doi || '', indexing: o.indexing || null,
-      status: extras.status || 'verified', returnReason: extras.returnReason || '',
+      status: extras.status || 'approved', returnReason: extras.returnReason || '',
       createdAt, createdBy, updatedAt: createdAt, updatedBy: createdBy,
     });
   };
@@ -244,6 +294,11 @@ export function makeSeed() {
     push('student-research', { title: r[0], authors: r[1], year: r[2], semester: r[3], course: lead.course }, i, r[4]);
   });
 
+  SPP.forEach((r, i) => push('presented-papers', { kind: 'students', title: r[0], authors: r[1], year: r[2], semester: r[3], fundingAgency: r[4], event: r[5], venue: r[6], eventDate: r[7] }, i + 20, r[8]));
+  SPJ.forEach((r, i) => push('published-journals', { kind: 'students', title: r[0], authors: r[1], year: r[2], semester: r[3], journal: r[4], issn: r[5], volume: r[6], yearPublished: r[7], doi: r[8], indexing: r[9] }, i + 20, r[10]));
+  EPP.forEach((r, i) => push('presented-papers', { kind: 'employees', title: r[0], authors: r[1], office: r[2], year: r[3], semester: r[4], fundingAgency: r[5], event: r[6], venue: r[7], eventDate: r[8] }, i + 20, r[9]));
+  EPJ.forEach((r, i) => push('published-journals', { kind: 'employees', title: r[0], authors: r[1], office: r[2], year: r[3], semester: r[4], journal: r[5], issn: r[6], volume: r[7], yearPublished: r[8], doi: r[9], indexing: r[10] }, i + 20, r[11]));
+
   // ── Audit log: a create entry per record + a handful of edits and sign-ins ──
   const collegeOf = (r) => r.college || offices.find((o) => o.id === r.office)?.college || null;
   const audit = [];
@@ -253,12 +308,21 @@ export function makeSeed() {
   records.forEach((r, i) => {
     audit.push({ id: `a${++n}`, ts: r.createdAt, userId: r.createdBy, userName: userName(r.createdBy), role: roleOf(r.createdBy), action: 'create',
       module: TYPES[r.type].label, recordId: r.id, recordTitle: r.title, summary: 'Record created', college: collegeOf(r) });
-    if (i % 6 === 0 && r.status === 'verified' && !r.createdAt.startsWith('2026')) {
+    if (i % 6 === 0 && r.status === 'approved' && !r.createdAt.startsWith('2026')) {
       const ts = new Date(new Date(r.createdAt).getTime() + 2 * 86400e3).toISOString();
       audit.push({ id: `a${++n}`, ts, userId: 'u-admin', userName: userName('u-admin'), role: 'admin', action: 'update',
         module: TYPES[r.type].label, recordId: r.id, recordTitle: r.title, summary: 'Updated: title, semester', college: collegeOf(r) });
       r.updatedAt = ts; r.updatedBy = 'u-admin';
     }
+  });
+  const CONTRIBUTORS = ['u-faculty', 'u-faculty2', 'u-student', 'u-student2', 'u-employee', 'u-employee2'];
+  const reviewerOf = (r) => (collegeOf(r) === 'cet' ? 'u-cet' : collegeOf(r) === 'ccss' ? 'u-ccss' : 'u-admin');
+  records.filter((r) => r.status !== 'pending' && CONTRIBUTORS.includes(r.createdBy)).forEach((r) => {
+    const by = reviewerOf(r);
+    const ts = new Date(Math.min(now - 60000, new Date(r.createdAt).getTime() + 36 * 3600e3)).toISOString();
+    const [action, summary] = { review: ['review', 'Review started'], approved: ['approve', 'Record approved'], rejected: ['reject', `Rejected: ${r.returnReason}`] }[r.status];
+    audit.push({ id: `a${++n}`, ts, userId: by, userName: userName(by), role: roleOf(by), action, module: TYPES[r.type].label, recordId: r.id, recordTitle: r.title, summary, college: collegeOf(r) });
+    r.updatedAt = ts; r.updatedBy = by;
   });
   users.filter((u) => u.status === 'active').forEach((u, i) => {
     const ts = hoursAgo(1 + i * 6);
