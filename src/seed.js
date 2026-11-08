@@ -1,9 +1,9 @@
 // Realistic sample data for the prototype. Rebuilt by "Reset demo data" in Administration → Settings.
-import { KINDS, TYPES } from './schema.js';
+import { KINDS, TYPES, metaOf } from './schema.js';
 
 const a = (arr) => arr.map((x) => ({ ...x, active: true }));
 
-export const SEED_VERSION = 4;
+export const SEED_VERSION = 5;
 
 export function makeSeed() {
   const now = Date.now();
@@ -280,7 +280,7 @@ export function makeSeed() {
       funded: !!o.fundingAgency, fundingAgency: o.fundingAgency || null,
       event: o.event || '', venue: o.venue || '', eventDate: o.eventDate || '',
       journal: o.journal || '', issn: o.issn || '', volume: o.volume || '', yearPublished: o.yearPublished || null,
-      doi: o.doi || '', indexing: o.indexing || null,
+      doi: o.doi || '', indexing: o.indexing || null, driveLink: '',
       status: extras.status || 'approved', returnReason: extras.returnReason || '',
       createdAt, createdBy, updatedAt: createdAt, updatedBy: createdBy,
     });
@@ -299,6 +299,12 @@ export function makeSeed() {
   EPP.forEach((r, i) => push('presented-papers', { kind: 'employees', title: r[0], authors: r[1], office: r[2], year: r[3], semester: r[4], fundingAgency: r[5], event: r[6], venue: r[7], eventDate: r[8] }, i + 20, r[9]));
   EPJ.forEach((r, i) => push('published-journals', { kind: 'employees', title: r[0], authors: r[1], office: r[2], year: r[3], semester: r[4], journal: r[5], issn: r[6], volume: r[7], yearPublished: r[8], doi: r[9], indexing: r[10] }, i + 20, r[11]));
 
+  // Placeholder Google Drive links (not real documents): about two thirds of the records, all contributor-owned ones included
+  const OWNER_IDS = Object.values(OWNER);
+  records.forEach((r, i) => {
+    if (OWNER_IDS.includes(r.createdBy) || i % 3 !== 0) r.driveLink = `https://drive.google.com/file/d/PLACEHOLDER_${r.id.replace('-', '')}_DEMO/view?usp=sharing`;
+  });
+
   // ── Audit log: a create entry per record + a handful of edits and sign-ins ──
   const collegeOf = (r) => r.college || offices.find((o) => o.id === r.office)?.college || null;
   const audit = [];
@@ -307,11 +313,11 @@ export function makeSeed() {
   const roleOf = (id) => users.find((u) => u.id === id)?.role || 'admin';
   records.forEach((r, i) => {
     audit.push({ id: `a${++n}`, ts: r.createdAt, userId: r.createdBy, userName: userName(r.createdBy), role: roleOf(r.createdBy), action: 'create',
-      module: TYPES[r.type].label, recordId: r.id, recordTitle: r.title, summary: 'Record created', college: collegeOf(r) });
+      module: TYPES[r.type].label, kind: metaOf(r).people, recordId: r.id, recordTitle: r.title, summary: 'Record created', college: collegeOf(r) });
     if (i % 6 === 0 && r.status === 'approved' && !r.createdAt.startsWith('2026')) {
       const ts = new Date(new Date(r.createdAt).getTime() + 2 * 86400e3).toISOString();
       audit.push({ id: `a${++n}`, ts, userId: 'u-admin', userName: userName('u-admin'), role: 'admin', action: 'update',
-        module: TYPES[r.type].label, recordId: r.id, recordTitle: r.title, summary: 'Updated: title, semester', college: collegeOf(r) });
+        module: TYPES[r.type].label, kind: metaOf(r).people, recordId: r.id, recordTitle: r.title, summary: 'Updated: title, semester', college: collegeOf(r) });
       r.updatedAt = ts; r.updatedBy = 'u-admin';
     }
   });
@@ -321,7 +327,7 @@ export function makeSeed() {
     const by = reviewerOf(r);
     const ts = new Date(Math.min(now - 60000, new Date(r.createdAt).getTime() + 36 * 3600e3)).toISOString();
     const [action, summary] = { review: ['review', 'Review started'], approved: ['approve', 'Record approved'], rejected: ['reject', `Rejected: ${r.returnReason}`] }[r.status];
-    audit.push({ id: `a${++n}`, ts, userId: by, userName: userName(by), role: roleOf(by), action, module: TYPES[r.type].label, recordId: r.id, recordTitle: r.title, summary, college: collegeOf(r) });
+    audit.push({ id: `a${++n}`, ts, userId: by, userName: userName(by), role: roleOf(by), action, module: TYPES[r.type].label, kind: metaOf(r).people, recordId: r.id, recordTitle: r.title, summary, college: collegeOf(r) });
     r.updatedAt = ts; r.updatedBy = by;
   });
   users.filter((u) => u.status === 'active').forEach((u, i) => {

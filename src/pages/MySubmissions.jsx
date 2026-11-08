@@ -2,6 +2,7 @@
 import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Badge, Btn, Card, EmptyState, FilterSelect, Icon, IconBtn, PageHeader, Pager, SearchInput } from '../components/ui.jsx';
+import DriveBadge from '../components/DriveBadge.jsx';
 import { getUser, useStore } from '../store.js';
 import { ROLES, STATUS, TYPES } from '../schema.js';
 import { canEdit, visibleTypes } from '../perm.js';
@@ -67,7 +68,7 @@ export default function MySubmissions() {
             <div className="tbl-wrap">
               <table className="tbl">
                 <caption style={{ position: 'absolute', left: -9999 }}>My submissions</caption>
-                <thead><tr><th>Title</th><th>Type</th><th>Year / Semester</th><th>Status</th><th>Last update</th><th style={{ textAlign: 'right' }}>Actions</th></tr></thead>
+                <thead><tr><th>Title</th><th>Type</th><th>Year / Semester</th><th>Status</th><th>Drive</th><th>Last update</th><th style={{ textAlign: 'right' }}>Actions</th></tr></thead>
                 <tbody>
                   {paged.map((r) => (
                     <tr key={r.id}>
@@ -81,6 +82,7 @@ export default function MySubmissions() {
                         <Badge variant={STATUS[r.status].variant}>{STATUS[r.status].label}</Badge>
                         {r.status === 'rejected' && r.returnReason && <div style={{ fontSize: 12, color: '#9B1B1B', marginTop: 4, lineHeight: 1.4 }}>{r.returnReason}</div>}
                       </td>
+                      <td><DriveBadge db={db} user={user} r={r} /></td>
                       <td style={{ fontSize: 13, color: '#5C6B7A', whiteSpace: 'nowrap' }}>{timeAgo(r.updatedAt)}<br /><span style={{ fontSize: 12 }}>{r.updatedBy === user.id ? 'by you' : `by ${userName(db, r.updatedBy)}`}</span></td>
                       <td><div style={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
                         <IconBtn icon="eye" label={`View ${r.id}`} to={`/records/${r.type}/${r.id}`} />

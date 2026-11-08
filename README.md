@@ -11,7 +11,9 @@ A clickable prototype of a research management and repository system for Pamanta
 
 ## Key features
 
-- **Sign-in with roles:** Administrator, College Coordinator, Faculty, Student, Employee, Auditor. Menus and actions change by role.
+- **Sign-in with roles:** Administrator, College Coordinator, Faculty Research Contributor, Student, Employee, Auditor. Menus and actions change by role.
+- **Google Drive document link:** contributors paste a share link to the full research file; the record page shows an embedded preview with an "Open in Google Drive" fallback, and tables show which records have a link. Visible to the owner, the coordinator (own college) and the administrator. Sample links are placeholders, not real documents.
+- **Coordinators** manage professors and students of their own college only: no Employee Research anywhere (menu, URL, search, reports, exports, dashboard).
 - **Simple accounts for Faculty, Student and Employee:** a **My Submissions** page (status tiles and a list of their own research), tabs for their own Research, Presented Papers and Published Journals, a submission form, and notifications when a reviewer acts. No reports, search or admin screens, and they only ever see their own records.
 - **Dashboard:** totals, charts and recent activity with year, semester and college filters.
 - **Five record types:** Faculty Research, Employee Research (by office), Presented Papers, Published Journals, Student Research. Presented Papers and Published Journals are shared by faculty, students and employees (an *Author type* on each record). Search, filter, sort, add, edit, delete, and a detail page for each record.
@@ -46,8 +48,8 @@ Demo data only. These are also shown on the login screen.
 | Research Office Administrator | admin@plm.edu.ph | Admin@123 |
 | College Coordinator (CET) | cet.research@plm.edu.ph | Coord@123 |
 | College Coordinator (CCSS) | ccss.research@plm.edu.ph | Coord@123 |
-| Faculty (Dr. Maria Santos, CET) | msantos@plm.edu.ph | Faculty@123 |
-| Faculty (Dr. Jose Reyes, CS) | jreyes@plm.edu.ph | Faculty@123 |
+| Faculty Research Contributor (Dr. Maria Santos, CET) | msantos@plm.edu.ph | Faculty@123 |
+| Faculty Research Contributor (Dr. Jose Reyes, CS) | jreyes@plm.edu.ph | Faculty@123 |
 | Student (Aira Valdez, CCSS) | avaldez@plm.edu.ph | Student@123 |
 | Student (Andrei Reyes, CET) | areyes@plm.edu.ph | Student@123 |
 | Employee (Accounting Office) | mdelacruz@plm.edu.ph | Employee@123 |

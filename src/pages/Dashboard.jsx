@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Card, CardTitle, ChartCanvas, FilterSelect, Icon, MetricCard } from '../components/ui.jsx';
 import { getUser, useStore } from '../store.js';
 import { TYPES, TYPE_LIST } from '../schema.js';
-import { canAudit, canCreateType, canReports, officialOnly, recordCollege } from '../perm.js';
+import { canAudit, canCreateType, canReports, officialOnly, recordCollege, visibleTypes } from '../perm.js';
 import { applyFilters, authorNames, byId, nameOf, pct, timeAgo, visibleRecords } from '../lib/data.js';
 
 const FKEY = 'plm-dash-filters';
@@ -15,6 +15,7 @@ export default function Dashboard() {
   const { db } = state;
   const user = getUser(state);
   const scopedCollege = user.role === 'coordinator' ? user.college : '';
+  const types = visibleTypes(user); // coordinators never see employee research
   const [f, setF] = useState(() => loadF({ year: db.settings.activeYear, semester: '', college: '' }));
   const set = (k) => (v) => { const n = { ...f, [k]: v }; setF(n); sessionStorage.setItem(FKEY, JSON.stringify(n)); };
   const college = scopedCollege || f.college;
@@ -47,7 +48,7 @@ export default function Dashboard() {
 
   // Recent activity from the audit log, scoped to what this user may see
   const activity = useMemo(() => db.audit.filter((a) => ['create', 'update', 'review', 'approve', 'reject', 'delete'].includes(a.action) && a.recordId && /^[A-Z]{2}-\d+/.test(a.recordId)
-    && (user.role === 'admin' || user.role === 'auditor' ? true : user.role === 'coordinator' ? a.college === user.college : a.userId === user.id)).slice(0, 6), [db.audit, user]);
+    && (user.role === 'admin' || user.role === 'auditor' ? true : user.role === 'coordinator' ? a.college === user.college && a.kind !== 'employees' : a.userId === user.id)).slice(0, 6), [db.audit, user]);
 
   const addType = TYPE_LIST.find((t) => canCreateType(user, t.id));
   const ay = f.year ? `AY ${f.year}` : 'all academic years';
@@ -71,7 +72,7 @@ export default function Dashboard() {
 
       <div className="grid-metrics">
         <MetricCard label="Total Outputs" value={rows.length} icon="layers" sub={ctx} />
-        {TYPE_LIST.map((t) => <MetricCard key={t.id} label={t.label} value={count(t.id)} icon={t.icon} iconColor={t.color} to={`/records/${t.id}`} />)}
+        {types.map((t) => <MetricCard key={t.id} label={t.label} value={count(t.id)} icon={t.icon} iconColor={t.color} to={`/records/${t.id}`} />)}
       </div>
 
       <div className="grid-charts">
@@ -89,8 +90,8 @@ export default function Dashboard() {
         </Card>
         <Card>
           <CardTitle title="Distribution by Type" sub={ctx} />
-          {rows.length ? <ChartCanvas type="doughnut" summary={`Donut chart by type: ${TYPE_LIST.map((t) => `${t.label} ${count(t.id)}`).join(', ')}`}
-            data={{ labels: TYPE_LIST.map((t) => t.label), datasets: [{ data: TYPE_LIST.map((t) => count(t.id)), backgroundColor: TYPE_LIST.map((t) => t.color), borderWidth: 2, borderColor: '#fff', hoverOffset: 6 }] }}
+          {rows.length ? <ChartCanvas type="doughnut" summary={`Donut chart by type: ${types.map((t) => `${t.label} ${count(t.id)}`).join(', ')}`}
+            data={{ labels: types.map((t) => t.label), datasets: [{ data: types.map((t) => count(t.id)), backgroundColor: types.map((t) => t.color), borderWidth: 2, borderColor: '#fff', hoverOffset: 6 }] }}
             options={{ cutout: '62%', plugins: { legend: { display: true, position: 'bottom' } } }} /> : <NoData />}
         </Card>
       </div>

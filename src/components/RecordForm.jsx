@@ -1,18 +1,19 @@
 // Add/Edit record form. One component, driven by TYPES config, rendered either in a side drawer
 // (short forms) or as a sectioned full page (Published Journal) — see pages/Records.jsx.
 import React, { useState } from 'react';
-import { Btn, FormField, Input, MultiSelect, Select, Textarea, useToast } from './ui.jsx';
+import { Btn, FormField, Icon, Input, MultiSelect, Select, Textarea, useToast } from './ui.jsx';
 import { getUser, saveRecord, useStore } from '../store.js';
 import { KINDS, ROLE_KIND, TYPES, metaOf } from '../schema.js';
 import { byId, nameOf, options } from '../lib/data.js';
 import { normalizeDoi, validateRecord } from '../lib/validate.js';
+import { DRIVE_HELP } from '../lib/drive.js';
 
 const CONTRIBUTORS = ['faculty', 'student', 'employee'];
 
 export function blankRecord(type, db, user) {
   const t = TYPES[type];
   const r = { type, authorKind: t.kinds ? (ROLE_KIND[user.role] || 'faculty') : null, title: '', authors: [], college: '', office: '', course: '', year: db.settings.activeYear, semester: db.settings.defaultSemester, funded: false, fundingAgency: '',
-    event: '', venue: '', eventDate: '', journal: '', issn: '', volume: '', yearPublished: '', doi: '', indexing: '' };
+    event: '', venue: '', eventDate: '', journal: '', issn: '', volume: '', yearPublished: '', doi: '', indexing: '', driveLink: '' };
   if (user.role === 'coordinator') r.college = user.college; // college locked to the coordinator's own
   if (user.personId && CONTRIBUTORS.includes(user.role)) { // "My Research" flow: pre-fill the signed-in author
     const m = metaOf(r);
@@ -32,7 +33,7 @@ export function useRecordForm(type, record, onSaved) {
   const set = (patch) => setForm((f) => ({ ...f, ...patch }));
 
   const submit = () => {
-    const rec = { ...form, doi: normalizeDoi(form.doi || ''), issn: (form.issn || '').trim().toUpperCase(), yearPublished: form.yearPublished ? Number(form.yearPublished) : null,
+    const rec = { ...form, driveLink: (form.driveLink || '').trim(), doi: normalizeDoi(form.doi || ''), issn: (form.issn || '').trim().toUpperCase(), yearPublished: form.yearPublished ? Number(form.yearPublished) : null,
       fundingAgency: form.funded ? form.fundingAgency : null, title: form.title.trim(), college: form.college || null, office: form.office || null, course: form.course || null, indexing: form.indexing || null };
     const e = validateRecord(rec, db);
     setErrors(e);
@@ -102,7 +103,7 @@ export function RecordFields({ type, ctl, sectioned }) {
   const setKind = (v) => set({ authorKind: v, authors: [], office: '', course: '', college: user.role === 'coordinator' ? user.college : '' });
   const kindField = TYPES[type].kinds && !contributor && (
     <FormField label="Author type" required hint="Decides which master list the authors come from.">
-      <Select value={t.people} onChange={setKind} disabled={!!form.id} options={Object.entries(KINDS).map(([v, k]) => ({ value: v, label: k.kindLabel }))} />
+      <Select value={t.people} onChange={setKind} disabled={!!form.id} options={Object.entries(KINDS).filter(([v]) => user.role !== 'coordinator' || v !== 'employees').map(([v, k]) => ({ value: v, label: k.kindLabel }))} />
     </FormField>
   );
 
@@ -139,6 +140,12 @@ export function RecordFields({ type, ctl, sectioned }) {
     </div>
   );
 
+  const driveField = (
+    <FormField label="Google Drive link" error={errors.driveLink} hint={DRIVE_HELP}>
+      <Input type="url" value={form.driveLink} onChange={(v) => set({ driveLink: v })} placeholder="https://drive.google.com/file/d/…" error={errors.driveLink} prefix={<Icon name="link" size={14} />} />
+    </FormField>
+  );
+
   const titleField = (
     <FormField label={t.journal ? 'Article title' : 'Research title'} required error={errors.title}>
       <Textarea value={form.title} onChange={(v) => set({ title: v })} rows={3} placeholder="Enter the full title" error={errors.title} />
@@ -162,6 +169,7 @@ export function RecordFields({ type, ctl, sectioned }) {
         </>)}
         {group('3 · Indexing', <FormField label="Indexing category" required error={errors.indexing}><Select value={form.indexing || ''} onChange={(v) => set({ indexing: v })} error={errors.indexing} placeholder="Select indexing" options={options(db.indexing, 'name', form.indexing)} /></FormField>)}
         {group('4 · Context', <>{unitField}{when}</>)}
+        {group('5 · Document', driveField)}
       </div>
     );
   }
@@ -190,6 +198,7 @@ export function RecordFields({ type, ctl, sectioned }) {
         </>
       )}
       {funding}
+      {driveField}
     </div>
   );
 }

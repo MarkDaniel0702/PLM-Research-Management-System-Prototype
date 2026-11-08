@@ -38,7 +38,7 @@ export const TYPE_LIST = Object.values(TYPES);
 // Presented Papers and Published Journals are shared by faculty, students and employees (`kinds: true`):
 // each record carries `authorKind`, which decides the authors' master list and whether it is classified by college or office.
 export const KINDS = {
-  faculty: { unit: 'college', noun: 'author', plural: 'Faculty', kindLabel: 'Faculty' },
+  faculty: { unit: 'college', noun: 'author', plural: 'Faculty', kindLabel: 'Faculty Research Contributor' },
   students: { unit: 'college', noun: 'student', plural: 'Students', kindLabel: 'Student' },
   employees: { unit: 'office', noun: 'employee', plural: 'Employees', kindLabel: 'Employee' },
 };
@@ -72,7 +72,7 @@ export const MASTERS = {
     refs: [['students', 'course'], ['records', 'course']],
   },
   faculty: {
-    title: 'Faculty', singular: 'Faculty member', icon: 'user',
+    title: 'Faculty', singular: 'Faculty research contributor', icon: 'user',
     fields: [
       { key: 'name', label: 'Full name', required: true, unique: true, wide: true },
       { key: 'college', label: 'College', source: 'colleges', show: 'abbr', required: true },
@@ -145,7 +145,7 @@ export const MASTER_LIST = Object.keys(MASTERS);
 export const ROLES = {
   admin: { label: 'Research Office Administrator', short: 'Administrator' },
   coordinator: { label: 'College Research Coordinator', short: 'Coordinator', needs: 'college' },
-  faculty: { label: 'Faculty Member', short: 'Faculty', needs: 'person', people: 'faculty' },
+  faculty: { label: 'Faculty Research Contributor', short: 'Faculty Research Contributor', needs: 'person', people: 'faculty' },
   student: { label: 'Student Research Contributor', short: 'Student', needs: 'person', people: 'students' },
   employee: { label: 'Employee Research Contributor', short: 'Employee', needs: 'person', people: 'employees' },
   auditor: { label: 'Viewer / Auditor', short: 'Auditor' },

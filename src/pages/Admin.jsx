@@ -116,7 +116,7 @@ function UserModal({ user, me, onClose }) {
         <FormField label="Email (login)" required error={errors.email}><Input type="email" value={form.email} onChange={(v) => set('email', v)} error={errors.email} placeholder="name@plm.edu.ph" /></FormField>
         <FormField label="Role" required error={errors.role}><Select value={form.role} onChange={(v) => setForm((f) => ({ ...f, role: v, college: null, personId: null }))} error={errors.role} options={Object.entries(ROLES).map(([k, r]) => ({ value: k, label: r.label }))} /></FormField>
         {form.role === 'coordinator' && <FormField label="Assigned college" required error={errors.college}><Select value={form.college || ''} onChange={(v) => set('college', v)} error={errors.college} placeholder="Select college" options={db.colleges.map((c) => ({ value: c.id, label: `${c.abbr} — ${c.name}` }))} /></FormField>}
-        {peopleKey && <FormField label={`Linked ${peopleKey === 'faculty' ? 'faculty member' : peopleKey === 'students' ? 'student' : 'employee'}`} required error={errors.personId} hint="Defines which records this user owns.">
+        {peopleKey && <FormField label={`Linked ${peopleKey === 'faculty' ? 'faculty research contributor' : peopleKey === 'students' ? 'student' : 'employee'}`} required error={errors.personId} hint="Defines which records this user owns.">
           <Select value={form.personId || ''} onChange={(v) => set('personId', v)} error={errors.personId} placeholder="Select person" options={db[peopleKey].map((p) => ({ value: p.id, label: p.name }))} /></FormField>}
         <FormField label={isNew ? 'Password' : 'New password'} required={isNew} error={errors.password} hint={isNew ? 'At least 8 characters, letters and numbers.' : 'Leave blank to keep the current password.'}>
           <Input type="password" value={form.password || ''} onChange={(v) => set('password', v)} error={errors.password} autoComplete="new-password" /></FormField>
@@ -139,7 +139,7 @@ function AuditLog() {
   const [size, setSize] = useState(20);
   const set = (k) => (v) => { setF((p) => ({ ...p, [k]: v })); setPage(1); };
 
-  const mine = useMemo(() => db.audit.filter((a) => me.role !== 'coordinator' || a.college === me.college), [db.audit, me]);
+  const mine = useMemo(() => db.audit.filter((a) => me.role !== 'coordinator' || (a.college === me.college && a.kind !== 'employees')), [db.audit, me]);
   const modules = [...new Set(mine.map((a) => a.module.split(' · ')[0]))].sort();
   const users = [...new Map(mine.filter((a) => a.userId).map((a) => [a.userId, a.userName])).entries()];
   const rows = mine.filter((a) => (!f.user || a.userId === f.user) && (!f.module || a.module.startsWith(f.module)) && (!f.action || a.action === f.action)

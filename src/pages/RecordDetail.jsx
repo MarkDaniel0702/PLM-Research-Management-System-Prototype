@@ -5,9 +5,48 @@ import { Badge, Btn, Card, CardTitle, ConfirmModal, EmptyState, Icon, IndexBadge
 import ReviewActions from '../components/Review.jsx';
 import { deleteRecord, getUser, useStore } from '../store.js';
 import { KINDS, STATUS, TYPES, metaOf } from '../schema.js';
-import { canDelete, canEdit, canSee, recordCollege } from '../perm.js';
+import { canDelete, canEdit, canSee, canSeeDrive, recordCollege } from '../perm.js';
+import { DRIVE_HELP, parseDriveLink } from '../lib/drive.js';
 import { authorList, editPath, fmtDate, fmtDateTime, indexOf, nameOf, semesterName, userName, visibleRecords } from '../lib/data.js';
 import NotFound from './NotFound.jsx';
+
+// Embedded Google Drive / Docs preview (the link is converted to its /preview form) with an "Open in Google Drive" fallback.
+function DocumentCard({ link, canAdd, editTo }) {
+  const d = parseDriveLink(link);
+  const open = d.ok && (
+    <a href={d.openUrl} target="_blank" rel="noopener noreferrer" className="btn" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 500, padding: '5px 12px', borderRadius: 6, border: '1.5px solid #1F3A93', color: '#1F3A93', background: '#fff', textDecoration: 'none' }}>
+      <Icon name="external" size={14} />Open in Google Drive
+    </a>
+  );
+  return (
+    <Card style={{ marginTop: 16 }}>
+      <CardTitle title="Research document" sub="Google Drive" right={open || undefined} />
+      {!link && (
+        <p style={{ fontSize: 14, color: '#5C6B7A', lineHeight: 1.6 }}>
+          No Google Drive link has been added yet.{' '}
+          {canAdd && <>Edit this record to add one. <Link to={editTo}>Add link</Link></>}
+        </p>
+      )}
+      {link && !d.ok && <p role="alert" style={{ fontSize: 14, color: '#9B1B1B' }}>{d.error || 'This link is not a valid Google Drive link.'}</p>}
+      {d.ok && d.placeholder && (
+        <div style={{ background: '#F6F0DA', border: '1px dashed #C8A12A', borderRadius: 8, padding: '28px 20px', textAlign: 'center', color: '#5C4A0E', fontSize: 14, lineHeight: 1.6 }}>
+          <strong>Demo placeholder link.</strong> This sample record points to a made-up Drive file, so there is nothing to preview.<br />
+          {canAdd ? <>Edit the record and paste a real shared link to see the live preview here.</> : <>A real shared link would be previewed here.</>}
+        </div>
+      )}
+      {d.ok && !d.placeholder && (
+        <>
+          <iframe title="Research document preview" src={d.previewUrl} loading="lazy" allow="autoplay" sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+            style={{ width: '100%', height: 560, border: '1px solid #D9DEE4', borderRadius: 6, background: '#F7F8FA' }} />
+          <p style={{ fontSize: 12.5, color: '#5C6B7A', marginTop: 8, lineHeight: 1.5 }}>
+            Can’t see the document? The file’s sharing must be “Anyone with the link can view”. You can also use <strong>Open in Google Drive</strong> above.
+          </p>
+        </>
+      )}
+      {!link && canAdd && <p style={{ fontSize: 12.5, color: '#5C6B7A', marginTop: 8 }}>{DRIVE_HELP}</p>}
+    </Card>
+  );
+}
 
 // Submitted -> Under review -> Decision (Approved / Rejected)
 function StatusSteps({ status }) {
@@ -128,6 +167,8 @@ export default function RecordDetail() {
           </Card>
         </div>
       </div>
+
+      {canSeeDrive(db, user, r) && <DocumentCard link={r.driveLink} canAdd={canEdit(db, user, r)} editTo={editPath(r, true)} />}
 
       <ConfirmModal isOpen={del} onClose={() => setDel(false)} title="Delete record" message={`Delete “${r.title}”? This cannot be undone, and the deletion will be recorded in the audit log.`}
         onConfirm={() => { deleteRecord(r.id); toast('Record deleted.', 'success'); nav(`/records/${type}`); }} />

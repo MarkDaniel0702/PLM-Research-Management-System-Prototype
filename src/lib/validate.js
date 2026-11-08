@@ -1,5 +1,6 @@
 // Form validation (Documentation §8.3). Returns { field: message }; empty object = valid.
 import { MASTERS, metaOf } from '../schema.js';
+import { parseDriveLink } from './drive.js';
 
 const ISSN = /^\d{4}-\d{3}[\dXx]$/;
 const DOI = /^10\.\d{4,9}\/\S+$/;
@@ -20,6 +21,7 @@ export function validateRecord(rec, db) {
   if (!rec.year) e.year = 'Academic year is required.';
   if (!rec.semester) e.semester = 'Semester is required.';
 
+  if (rec.driveLink) { const d = parseDriveLink(rec.driveLink); if (!d.ok) e.driveLink = d.error; }
   if (t.funding && rec.funded && !rec.fundingAgency) e.fundingAgency = 'Funding agency is required when the research is funded.';
   if (t.course) {
     if (!rec.course) e.course = 'Course is required.';

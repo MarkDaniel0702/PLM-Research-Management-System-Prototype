@@ -4,10 +4,11 @@ import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-r
 import { Badge, Btn, ConfirmModal, Drawer, EmptyState, FilterSelect, Icon, IconBtn, IndexBadge, PageHeader, Pager, SearchInput, useToast, Card } from '../components/ui.jsx';
 import ExportMenu from '../components/ExportMenu.jsx';
 import ReviewActions from '../components/Review.jsx';
+import DriveBadge from '../components/DriveBadge.jsx';
 import { FormFooter, RecordFields, useRecordForm } from '../components/RecordForm.jsx';
 import { deleteRecord, getUser, useStore } from '../store.js';
 import { KINDS, STATUS, TYPES, metaOf } from '../schema.js';
-import { canCreateType, canDelete, canEdit, canReports, isContributor } from '../perm.js';
+import { canCreateType, canDelete, canEdit, canReports, canSeeDrive, isContributor } from '../perm.js';
 import { authorNames, byId, collegeAbbr, editPath, indexOf, matchesQuery, nameOf, newPath, semesterName, unitLabel, useSessionState, visibleRecords } from '../lib/data.js';
 import { tableFor } from '../lib/columns.js';
 import NotFound from './NotFound.jsx';
@@ -101,7 +102,7 @@ function RecordList({ type }) {
         {user.role !== 'coordinator' && !isContributor(user) && (isOffice
           ? <FilterSelect value={f.unit} onChange={(v) => upd({ unit: v })} placeholder="All offices" options={db.offices.map((o) => ({ value: o.id, label: o.name }))} />
           : <FilterSelect value={f.unit} onChange={(v) => upd({ unit: v })} placeholder="All colleges" options={db.colleges.map((c) => ({ value: c.id, label: `${c.abbr} — ${c.name}` }))} />)}
-        {t.kinds && !isContributor(user) && <FilterSelect value={f.kind} onChange={(v) => upd({ kind: v })} placeholder="All author types" options={Object.entries(KINDS).map(([value, k]) => ({ value, label: k.kindLabel }))} />}
+        {t.kinds && !isContributor(user) && <FilterSelect value={f.kind} onChange={(v) => upd({ kind: v })} placeholder="All author types" options={Object.entries(KINDS).filter(([v]) => user.role !== 'coordinator' || v !== 'employees').map(([value, k]) => ({ value, label: k.kindLabel }))} />}
         <FilterSelect value={shared.semester} onChange={(v) => { setShared({ semester: v }); setPage(1); }} placeholder="All semesters" options={db.semesters.map((s) => ({ value: s.id, label: s.name }))} />
         <FilterSelect value={shared.year} onChange={(v) => { setShared({ year: v }); setPage(1); }} placeholder="All years" options={db.academicYears.map((y) => y.label)} />
         {t.journal && <FilterSelect value={f.indexing} onChange={(v) => upd({ indexing: v })} placeholder="All indexing" options={db.indexing.map((i) => ({ value: i.id, label: i.name }))} />}
@@ -131,6 +132,7 @@ function RecordList({ type }) {
                     {t.course && <><th>Course</th><Th k="n" label="# Students" cls="num" /></>}
                     <Th k="year" label="Year / Semester" />
                     <Th k="status" label="Status" />
+                    {user.role !== 'auditor' && <th>Drive</th>}
                     <th style={{ textAlign: 'right' }}>Actions</th>
                   </tr>
                 </thead>
@@ -149,6 +151,7 @@ function RecordList({ type }) {
                       {t.course && <><td style={{ fontSize: 13, color: '#5C6B7A' }}>{nameOf(db, 'courses', r.course, 'code')}</td><td className="num" style={{ color: '#5C6B7A' }}>{r.authors.length}</td></>}
                       <td style={{ fontSize: 13, color: '#5C6B7A', whiteSpace: 'nowrap' }}>{r.year}<br /><span style={{ fontSize: 12 }}>{semesterName(db, r.semester)}</span></td>
                       <td><Badge variant={STATUS[r.status].variant}>{STATUS[r.status].label}</Badge>{r.status === 'rejected' && r.returnReason && <div className="clip" style={{ fontSize: 12, color: '#9B1B1B', marginTop: 3, maxWidth: 200 }} title={r.returnReason}>{r.returnReason}</div>}</td>
+                      {user.role !== 'auditor' && <td><DriveBadge db={db} user={user} r={r} /></td>}
                       <td>
                         <div style={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
                           <ReviewActions rec={r} compact />
@@ -218,7 +221,7 @@ export function RecordFormPage() {
 function PageForm({ type, record, onCancel, onSaved }) {
   const t = TYPES[type];
   const ctl = useRecordForm(type, record, onSaved);
-  const sections = ['1 · Article', '2 · Journal', '3 · Indexing', '4 · Context'];
+  const sections = ['1 · Article', '2 · Journal', '3 · Indexing', '4 · Context', '5 · Document'];
   return (
     <div className="page" style={{ maxWidth: 1100 }}>
       <PageHeader title={record ? `Edit ${t.singular}` : `Add ${t.singular}`} subtitle={record ? record.id : 'Fill in the sections below. Fields marked * are required.'} back={{ to: record ? `/records/${type}/${record.id}` : `/records/${type}`, label: record ? 'Back to record' : `Back to ${t.label}` }} />

@@ -6,7 +6,7 @@ import { Badge, Btn, Card, EmptyState, FormField, Icon, IndexBadge, PageHeader, 
 import ExportMenu from '../components/ExportMenu.jsx';
 import { getUser, useStore } from '../store.js';
 import { STATUS, TYPE_LIST, TYPES } from '../schema.js';
-import { canReports, recordCollege } from '../perm.js';
+import { canReports, canSeeDrive, recordCollege, visibleTypes } from '../perm.js';
 import { authorNames, byId, indexOf, matchesQuery, nameOf, semesterName, unitLabel, visibleRecords } from '../lib/data.js';
 import { tableFor } from '../lib/columns.js';
 
@@ -80,7 +80,7 @@ export default function Repository() {
             {active && <button type="button" onClick={clear} style={{ background: 'none', border: 'none', color: '#9B1B1B', fontSize: 13, cursor: 'pointer' }}>Clear all</button>}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <FormField label="Record type"><Select value={f.type} onChange={(v) => setP({ type: v })} placeholder="All types" options={TYPE_LIST.map((t) => ({ value: t.id, label: t.label }))} /></FormField>
+            <FormField label="Record type"><Select value={f.type} onChange={(v) => setP({ type: v })} placeholder="All types" options={visibleTypes(user).map((t) => ({ value: t.id, label: t.label }))} /></FormField>
             {user.role !== 'coordinator' && <FormField label="College"><Select value={f.college} onChange={(v) => setP({ college: v })} placeholder="All colleges" options={db.colleges.map((c) => ({ value: c.id, label: c.abbr }))} /></FormField>}
             <FormField label="Academic year"><Select value={f.year} onChange={(v) => setP({ year: v })} placeholder="All years" options={db.academicYears.map((y) => y.label)} /></FormField>
             <FormField label="Semester"><Select value={f.semester} onChange={(v) => setP({ semester: v })} placeholder="All semesters" options={db.semesters.map((s) => ({ value: s.id, label: s.name }))} /></FormField>
@@ -132,7 +132,7 @@ export default function Repository() {
                             <div style={{ display: 'flex', gap: '4px 10px', flexWrap: 'wrap', alignItems: 'center', fontSize: 12.5, color: '#5C6B7A' }}>
                               <span>{authorNames(db, r)}</span><Badge>{unitLabel(db, r)}</Badge><span>{r.year} · {semesterName(db, r.semester)}</span>
                               {r.indexing && <IndexBadge idx={indexOf(db, r.indexing)} />}
-                              {r.journal && <em>{r.journal}</em>}{r.event && <span>{r.event}</span>}
+                              {canSeeDrive(db, user, r) && r.driveLink && <Badge variant="success">Drive link</Badge>}{r.journal && <em>{r.journal}</em>}{r.event && <span>{r.event}</span>}
                               {r.status !== 'approved' && <Badge variant={STATUS[r.status].variant}>{STATUS[r.status].label}</Badge>}
                             </div>
                           </div>

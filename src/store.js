@@ -1,7 +1,7 @@
 // Tiny external store backed by localStorage (no backend). Every write goes through the functions here,
 // and every write that matters is recorded in the audit log from this one place.
 import { useSyncExternalStore } from 'react';
-import { MASTERS, TYPES } from './schema.js';
+import { MASTERS, TYPES, metaOf } from './schema.js';
 import { makeSeed, SEED_VERSION } from './seed.js';
 
 const DB_KEY = 'plm-rms-db';
@@ -73,7 +73,7 @@ export function requestPasswordReset(email) {
 // ─── Research records ──────────────────────────────────────────────────────────
 const DIFF_FIELDS = { title: 'title', authors: 'authors', college: 'college', office: 'office', course: 'course', year: 'academic year', semester: 'semester',
   funded: 'funding', fundingAgency: 'funding agency', event: 'event', venue: 'venue', eventDate: 'event date', journal: 'journal', issn: 'ISSN',
-  volume: 'volume', yearPublished: 'year published', doi: 'DOI', indexing: 'indexing', authorKind: 'author type' };
+  volume: 'volume', yearPublished: 'year published', doi: 'DOI', indexing: 'indexing', authorKind: 'author type', driveLink: 'Google Drive link' };
 
 export function saveRecord(rec) {
   const user = getUser();
@@ -100,7 +100,7 @@ export function saveRecord(rec) {
     summary = approver ? 'Record created' : 'Record submitted for review';
   }
   setDb(withAudit({ ...db, records }, user, { action: existing ? 'update' : 'create', module: TYPES[saved.type].label, recordId: saved.id,
-    recordTitle: saved.title, summary, college: collegeOfRecord(db, saved) }));
+    recordTitle: saved.title, summary, kind: metaOf(saved).people, college: collegeOfRecord(db, saved) }));
   return saved;
 }
 
@@ -110,7 +110,7 @@ export function deleteRecord(id) {
   const r = db.records.find((x) => x.id === id);
   if (!r) return;
   setDb(withAudit({ ...db, records: db.records.filter((x) => x.id !== id) }, user, { action: 'delete', module: TYPES[r.type].label,
-    recordId: r.id, recordTitle: r.title, summary: 'Record deleted', college: collegeOfRecord(db, r) }));
+    recordId: r.id, recordTitle: r.title, summary: 'Record deleted', kind: metaOf(r).people, college: collegeOfRecord(db, r) }));
 }
 
 export function setRecordStatus(id, status, reason = '') {
@@ -121,7 +121,7 @@ export function setRecordStatus(id, status, reason = '') {
   const now = new Date().toISOString();
   const records = db.records.map((x) => (x.id === id ? { ...x, status, returnReason: status === 'rejected' ? reason : '', updatedAt: now, updatedBy: user.id } : x));
   const [action, summary] = { review: ['review', 'Review started'], approved: ['approve', 'Record approved'], rejected: ['reject', `Rejected: ${reason}`] }[status];
-  setDb(withAudit({ ...db, records }, user, { action, module: TYPES[r.type].label, recordId: r.id, recordTitle: r.title, summary, college: collegeOfRecord(db, r) }));
+  setDb(withAudit({ ...db, records }, user, { action, module: TYPES[r.type].label, recordId: r.id, recordTitle: r.title, summary, kind: metaOf(r).people, college: collegeOfRecord(db, r) }));
 }
 
 // ─── Master data ───────────────────────────────────────────────────────────────
