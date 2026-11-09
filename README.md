@@ -46,12 +46,11 @@ Demo data only. These are also shown on the login screen.
 | Role | Email | Password |
 |---|---|---|
 | Research Office Administrator | admin@plm.edu.ph | Admin@123 |
-| College Coordinator (CET) | cet.research@plm.edu.ph | Coord@123 |
-| College Coordinator (CCSS) | ccss.research@plm.edu.ph | Coord@123 |
-| Faculty Research Contributor (Dr. Maria Santos, CET) | msantos@plm.edu.ph | Faculty@123 |
+| College Coordinator (one per college: ca, casbe, cba, ced, ce, chass, cistm, cl, cm, cn, cpt, cpa, cs, cthm, gsl) | `<college-id>.research@plm.edu.ph` (e.g. ce.research@plm.edu.ph) | Coord@123 |
+| Faculty Research Contributor (Dr. Maria Santos, CE) | msantos@plm.edu.ph | Faculty@123 |
 | Faculty Research Contributor (Dr. Jose Reyes, CS) | jreyes@plm.edu.ph | Faculty@123 |
-| Student (Aira Valdez, CCSS) | avaldez@plm.edu.ph | Student@123 |
-| Student (Andrei Reyes, CET) | areyes@plm.edu.ph | Student@123 |
+| Student (Aira Valdez, CISTM) | avaldez@plm.edu.ph | Student@123 |
+| Student (Andrei Reyes, CE) | areyes@plm.edu.ph | Student@123 |
 | Employee (Accounting Office) | mdelacruz@plm.edu.ph | Employee@123 |
 | Employee (Security Office) | esantos@plm.edu.ph | Employee@123 |
 | Viewer / Auditor | audit@plm.edu.ph | Audit@123 |

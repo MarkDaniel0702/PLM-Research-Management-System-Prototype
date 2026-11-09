@@ -57,7 +57,7 @@ export function Login() {
 
         <div style={{ background: '#F6F0DA', border: '1px solid #C8A12A55', borderRadius: 6, padding: '12px 14px', marginBottom: 20 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: '#8A6D12', marginBottom: 8, letterSpacing: '0.04em', textTransform: 'uppercase' }}>Demo — click a role to fill the form</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 280, overflowY: 'auto' }}>
             {demo.map((u) => (
               <button type="button" key={u.id} onClick={() => pick(u)} className="btn" style={{ textAlign: 'left', padding: '6px 10px', borderRadius: 5, cursor: 'pointer', border: `1.5px solid ${email === u.email ? '#C8A12A' : 'transparent'}`, background: email === u.email ? '#fff' : 'transparent' }}>
                 <div style={{ fontSize: 13, fontWeight: 600 }}>{ROLES[u.role].label}{u.college ? ` · ${state.db.colleges.find((c) => c.id === u.college)?.abbr}` : ''}</div>

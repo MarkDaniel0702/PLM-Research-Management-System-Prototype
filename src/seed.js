@@ -3,38 +3,77 @@ import { KINDS, TYPES, metaOf } from './schema.js';
 
 const a = (arr) => arr.map((x) => ({ ...x, active: true }));
 
-export const SEED_VERSION = 5;
+export const SEED_VERSION = 6;
 
 export function makeSeed() {
   const now = Date.now();
   const hoursAgo = (h) => new Date(now - h * 3600e3).toISOString();
 
+  // Official PLM colleges and programs — source: https://www.schoolfinderph.com/blog/pamantasan-lungsod-maynila-courses-offered
+  // (college abbreviations and program codes are ours; names are as listed at the source).
   const colleges = a([
-    { id: 'cet', abbr: 'CET', name: 'College of Engineering and Technology' },
-    { id: 'cs', abbr: 'CS', name: 'College of Science' },
-    { id: 'cal', abbr: 'CAL', name: 'College of Arts and Letters' },
-    { id: 'cba', abbr: 'CBA', name: 'College of Business and Accountancy' },
-    { id: 'ccss', abbr: 'CCSS', name: 'College of Computer Studies and Systems' },
-    { id: 'coed', abbr: 'COED', name: 'College of Education' },
+    { id: 'ca', abbr: 'CA', name: 'College of Accountancy' },
+    { id: 'casbe', abbr: 'CASBE', name: 'College of Architecture and Sustainable Built Environments' },
+    { id: 'cba', abbr: 'CBA', name: 'College of Business Administration' },
+    { id: 'ced', abbr: 'CED', name: 'College of Education' },
+    { id: 'ce', abbr: 'CE', name: 'College of Engineering' },
+    { id: 'chass', abbr: 'CHASS', name: 'College of Humanities, Arts and Social Sciences' },
+    { id: 'cistm', abbr: 'CISTM', name: 'College of Information Systems and Technology Management' },
     { id: 'cl', abbr: 'CL', name: 'College of Law' },
-    { id: 'cnhs', abbr: 'CNHS', name: 'College of Nursing and Health Sciences' },
-    { id: 'cpers', abbr: 'CPERS', name: 'College of Physical Education, Recreation and Sports' },
-    { id: 'gs', abbr: 'GS', name: 'Graduate School' },
+    { id: 'cm', abbr: 'CM', name: 'College of Medicine' },
+    { id: 'cn', abbr: 'CN', name: 'College of Nursing' },
+    { id: 'cpt', abbr: 'CPT', name: 'College of Physical Therapy' },
+    { id: 'cpa', abbr: 'CPA', name: 'College of Public Administration' },
+    { id: 'cs', abbr: 'CS', name: 'College of Science' },
+    { id: 'cthm', abbr: 'CTHM', name: 'College of Tourism and Hospitality Management' },
+    { id: 'gsl', abbr: 'GSL', name: 'Graduate School of Law' },
   ]);
   const courses = a([
-    { id: 'bscs', code: 'BSCS', name: 'BS Computer Science', college: 'ccss' },
-    { id: 'bsit', code: 'BSIT', name: 'BS Information Technology', college: 'ccss' },
-    { id: 'bsee', code: 'BSEE', name: 'BS Electrical Engineering', college: 'cet' },
-    { id: 'bsce', code: 'BSCE', name: 'BS Civil Engineering', college: 'cet' },
-    { id: 'bsbio', code: 'BSBIO', name: 'BS Biology', college: 'cs' },
-    { id: 'bschem', code: 'BSCHEM', name: 'BS Chemistry', college: 'cs' },
-    { id: 'abcom', code: 'ABCOM', name: 'AB Communication', college: 'cal' },
-    { id: 'bsa', code: 'BSA', name: 'BS Accountancy', college: 'cba' },
-    { id: 'bsba', code: 'BSBA', name: 'BS Business Administration', college: 'cba' },
-    { id: 'bsed', code: 'BSED', name: 'BS Education', college: 'coed' },
-    { id: 'bsn', code: 'BSN', name: 'BS Nursing', college: 'cnhs' },
-    { id: 'bspe', code: 'BSPE', name: 'BS Physical Education', college: 'cpers' },
-  ]);
+    ['ca', [['bsa', 'BSA', 'BS Accountancy']]],
+    ['casbe', [['bsarch', 'BSARCH', 'BS Architecture']]],
+    ['cba', [
+      ['bsba-be', 'BSBA-BE', 'BSBA major in Business Economics'], ['bsba-fm', 'BSBA-FM', 'BSBA major in Financial Management'],
+      ['bsba-hrm', 'BSBA-HRM', 'BSBA major in Human Resource Management'], ['bsba-mkt', 'BSBA-MKT', 'BSBA major in Marketing Management'],
+      ['bsba-om', 'BSBA-OM', 'BSBA major in Operations Management'], ['bsent', 'BSENT', 'BS Entrepreneurship'],
+      ['bsrem', 'BSREM', 'BS Real Estate Management'], ['dba', 'DBA', 'Doctor in Business Administration'], ['mba', 'MBA', 'Master in Business Administration'],
+    ]],
+    ['ced', [
+      ['beced', 'BECED', 'Bachelor of Early Childhood Education'], ['beed', 'BEED', 'Bachelor of Elementary Education'],
+      ['bped', 'BPED', 'Bachelor of Physical Education'],
+      ['bsed', 'BSED', 'Bachelor of Secondary Education (majors in English, Filipino, Mathematics, Sciences, Social Studies)'],
+      ['bsned', 'BSNED', 'Bachelor of Special Needs Education (Generalist)'],
+      ['edd', 'EDD', 'Doctor of Education (major in Educational Management and Leadership)'],
+      ['masped', 'MASPED', 'MA in Special Education (specialization in Developmental Delays, non-thesis)'],
+      ['maed', 'MAED', 'MA in Education (majors in Biological Science, Chemistry, Educational Management and Leadership, Physics, Social Sciences)'],
+      ['msmathed', 'MSMATHED', 'MS in Mathematics Education'],
+    ]],
+    ['ce', [
+      ['bsche', 'BSCHE', 'BS Chemical Engineering'], ['bsce', 'BSCE', 'BS Civil Engineering'],
+      ['bsce-cm', 'BSCE-CM', 'BS Civil Engineering (specialization in Construction Management)'],
+      ['bsce-se', 'BSCE-SE', 'BS Civil Engineering (specialization in Structural Engineering)'],
+      ['bscpe', 'BSCPE', 'BS Computer Engineering'], ['bsee', 'BSEE', 'BS Electrical Engineering'], ['bsece', 'BSECE', 'BS Electronics Engineering'],
+      ['bsmfge', 'BSMFGE', 'BS Manufacturing Engineering'], ['bsme', 'BSME', 'BS Mechanical Engineering'],
+    ]],
+    ['chass', [
+      ['bacomm', 'BACOMM', 'BA Communication'], ['bacomm-pr', 'BACOMM-PR', 'BA Communication (specialization in Public Relations)'],
+      ['bmus', 'BMUS', 'Bachelor of Music in Music Performance'], ['bssw', 'BSSW', 'BS Social Work'],
+      ['macomm', 'MACOMM', 'MA in Communication'], ['msw', 'MSW', 'Master of Social Work'],
+    ]],
+    ['cistm', [['bscs', 'BSCS', 'BS Computer Science'], ['bsit', 'BSIT', 'BS Information Technology']]],
+    ['cl', [['jd', 'JD', 'Juris Doctor']]],
+    ['cm', [['md', 'MD', 'Doctor of Medicine'], ['emed', 'EMED', 'Enhanced Medicine Program (eMED)'], ['mph', 'MPH', 'Master of Public Health']]],
+    ['cn', [['bsn', 'BSN', 'BS Nursing'], ['man', 'MAN', 'Master of Arts in Nursing']]],
+    ['cpt', [['bspt', 'BSPT', 'BS Physical Therapy'], ['mpt', 'MPT', 'Master of Physical Therapy'], ['mspt', 'MSPT', 'Master of Science in Physical Therapy']]],
+    ['cpa', [['bpa', 'BPA', 'Bachelor of Public Administration'], ['dpa', 'DPA', 'Doctor of Public Administration'], ['mpa', 'MPA', 'Master of Public Administration']]],
+    ['cs', [
+      ['bsbio', 'BSBIO', 'BS Biology'], ['bsbio-cmb', 'BSBIO-CMB', 'BS Biology (major in Cell and Molecular Biology)'],
+      ['bsbio-eco', 'BSBIO-ECO', 'BS Biology (major in Ecology)'], ['bsbio-mb', 'BSBIO-MB', 'BS Biology (major in Medical Biology)'],
+      ['bschem', 'BSCHEM', 'BS Chemistry'], ['bsmath', 'BSMATH', 'BS Mathematics'], ['bspsych', 'BSPSYCH', 'BS Psychology'],
+      ['mapsych-cp', 'MAPSYCH-CP', 'MA Psychology (specialization in Clinical Psychology)'],
+    ]],
+    ['cthm', [['bshm', 'BSHM', 'BS Hospitality Management'], ['bstm', 'BSTM', 'BS Tourism Management']]],
+    ['gsl', [['llm', 'LLM', 'Master of Laws']]],
+  ].flatMap(([college, list]) => list.map(([id, code, name]) => ({ id, code, name, college }))));
   const offices = a([
     { id: 'acct', code: 'ACCT', name: 'Accounting Office', category: 'Administrative', college: null },
     { id: 'reg', code: 'REG', name: "Registrar's Office", category: 'Administrative', college: null },
@@ -43,37 +82,44 @@ export function makeSeed() {
     { id: 'ro', code: 'RO', name: 'Research Office', category: 'Academic Support', college: null },
     { id: 'maint', code: 'MAINT', name: 'Buildings and Grounds', category: 'Maintenance', college: null },
     { id: 'sec', code: 'SEC', name: 'Security Office', category: 'Security', college: null },
-    { id: 'cetd', code: 'CETD', name: "CET Dean's Office", category: 'Administrative', college: 'cet' },
+    { id: 'ce-dean', code: 'CEDEAN', name: "CE Dean's Office", category: 'Administrative', college: 'ce' },
   ]);
   const faculty = a([
-    { id: 'f1', name: 'Dr. Maria Santos', college: 'cet', rank: 'Professor' },
+    { id: 'f1', name: 'Dr. Maria Santos', college: 'ce', rank: 'Professor' },
     { id: 'f2', name: 'Dr. Jose Reyes', college: 'cs', rank: 'Professor' },
-    { id: 'f3', name: 'Prof. Ana Garcia', college: 'cal', rank: 'Associate Professor' },
+    { id: 'f3', name: 'Prof. Ana Garcia', college: 'chass', rank: 'Associate Professor' },
     { id: 'f4', name: 'Dr. Roberto Cruz', college: 'cba', rank: 'Professor' },
-    { id: 'f5', name: 'Dr. Michael Lim', college: 'ccss', rank: 'Associate Professor' },
-    { id: 'f6', name: 'Dr. Patricia Dela Cruz', college: 'coed', rank: 'Professor' },
+    { id: 'f5', name: 'Dr. Michael Lim', college: 'cistm', rank: 'Associate Professor' },
+    { id: 'f6', name: 'Dr. Patricia Dela Cruz', college: 'ced', rank: 'Professor' },
     { id: 'f7', name: 'Atty. Ramon Flores', college: 'cl', rank: 'Assistant Professor' },
-    { id: 'f8', name: 'Dr. Elena Bautista', college: 'cnhs', rank: 'Professor' },
-    { id: 'f9', name: 'Dr. Juan Mendoza', college: 'cet', rank: 'Associate Professor' },
+    { id: 'f8', name: 'Dr. Elena Bautista', college: 'cn', rank: 'Professor' },
+    { id: 'f9', name: 'Dr. Juan Mendoza', college: 'ce', rank: 'Associate Professor' },
     { id: 'f10', name: 'Dr. Liza Villanueva', college: 'cs', rank: 'Associate Professor' },
-    { id: 'f11', name: 'Prof. Carlos Ramos', college: 'ccss', rank: 'Assistant Professor' },
-    { id: 'f12', name: 'Dr. Sunshine Tan', college: 'gs', rank: 'Professor' },
-    { id: 'f13', name: 'Dr. Benito Aguilar', college: 'cnhs', rank: 'Associate Professor' },
+    { id: 'f11', name: 'Prof. Carlos Ramos', college: 'cistm', rank: 'Assistant Professor' },
+    { id: 'f12', name: 'Dr. Sunshine Tan', college: 'ced', rank: 'Professor' },
+    { id: 'f13', name: 'Dr. Benito Aguilar', college: 'cn', rank: 'Associate Professor' },
     { id: 'f14', name: 'Prof. Diana Navarro', college: 'cba', rank: 'Assistant Professor' },
-    { id: 'f15', name: 'Dr. Rosario Pineda', college: 'cpers', rank: 'Associate Professor' },
-    { id: 'f16', name: 'Prof. Gabriel Santiago', college: 'cal', rank: 'Assistant Professor' },
+    { id: 'f15', name: 'Dr. Rosario Pineda', college: 'ced', rank: 'Associate Professor' },
+    { id: 'f16', name: 'Prof. Gabriel Santiago', college: 'chass', rank: 'Assistant Professor' },
+    { id: 'f17', name: 'Ar. Teresita Manalastas', college: 'casbe', rank: 'Professor' },
+    { id: 'f18', name: 'Dr. Fernando Ilagan', college: 'ca', rank: 'Associate Professor' },
+    { id: 'f19', name: 'Dr. Corazon Estrada', college: 'cm', rank: 'Professor' },
+    { id: 'f20', name: 'Dr. Anton Salvador', college: 'cpt', rank: 'Associate Professor' },
+    { id: 'f21', name: 'Dr. Marilou Cabrera', college: 'cpa', rank: 'Professor' },
+    { id: 'f22', name: 'Prof. Jericho Valencia', college: 'cthm', rank: 'Assistant Professor' },
+    { id: 'f23', name: 'Atty. Lourdes Macaraeg', college: 'gsl', rank: 'Associate Professor' },
   ]);
   const S = (id, name, college, course) => ({ id, studentNo: `2021-${String(100 + +id.slice(1)).padStart(5, '0')}`, name, college, course });
   const students = a([
-    S('s1', 'Aira Valdez', 'ccss', 'bscs'), S('s2', 'Renz Aquino', 'ccss', 'bscs'), S('s3', 'Kyle Soriano', 'ccss', 'bscs'),
-    S('s4', 'Marie Pascual', 'coed', 'bsed'), S('s5', 'Kristine Aguilar', 'coed', 'bsed'),
-    S('s6', 'Jose Alvarado', 'cal', 'abcom'), S('s7', 'Nina Cruz', 'cal', 'abcom'), S('s8', 'Mark Ocampo', 'cal', 'abcom'), S('s9', 'Sarah Gomez', 'cal', 'abcom'),
-    S('s10', 'Andrei Reyes', 'cet', 'bsee'), S('s11', 'Paolo Santos', 'cet', 'bsee'),
-    S('s12', 'Diana Lopez', 'cba', 'bsa'), S('s13', 'Iris Navarro', 'cba', 'bsa'), S('s14', 'Roy Catalan', 'cba', 'bsa'),
+    S('s1', 'Aira Valdez', 'cistm', 'bscs'), S('s2', 'Renz Aquino', 'cistm', 'bscs'), S('s3', 'Kyle Soriano', 'cistm', 'bscs'),
+    S('s4', 'Marie Pascual', 'ced', 'bsed'), S('s5', 'Kristine Aguilar', 'ced', 'bsed'),
+    S('s6', 'Jose Alvarado', 'chass', 'bacomm'), S('s7', 'Nina Cruz', 'chass', 'bacomm'), S('s8', 'Mark Ocampo', 'chass', 'bacomm'), S('s9', 'Sarah Gomez', 'chass', 'bacomm'),
+    S('s10', 'Andrei Reyes', 'ce', 'bsee'), S('s11', 'Paolo Santos', 'ce', 'bsee'),
+    S('s12', 'Diana Lopez', 'ca', 'bsa'), S('s13', 'Iris Navarro', 'ca', 'bsa'), S('s14', 'Roy Catalan', 'ca', 'bsa'),
     S('s15', 'Faith Santos', 'cs', 'bsbio'), S('s16', 'Marco Reyes', 'cs', 'bsbio'),
-    S('s17', 'Hannah Villareal', 'cnhs', 'bsn'), S('s18', 'Lance Dizon', 'cnhs', 'bsn'),
-    S('s19', 'Bea Fernandez', 'cpers', 'bspe'), S('s20', 'Carlo Mendoza', 'cet', 'bsce'),
-    S('s21', 'Trisha Manalo', 'ccss', 'bsit'), S('s22', 'Gian Roque', 'cs', 'bschem'),
+    S('s17', 'Hannah Villareal', 'cn', 'bsn'), S('s18', 'Lance Dizon', 'cn', 'bsn'),
+    S('s19', 'Bea Fernandez', 'ced', 'bped'), S('s20', 'Carlo Mendoza', 'ce', 'bsce'),
+    S('s21', 'Trisha Manalo', 'cistm', 'bsit'), S('s22', 'Gian Roque', 'cs', 'bschem'),
   ]);
   const E = (n, name, office, position) => ({ id: `e${n}`, employeeNo: `EMP-${String(n).padStart(4, '0')}`, name, office, position });
   const employees = a([
@@ -81,7 +127,7 @@ export function makeSeed() {
     E(3, 'Ms. Lourdes Bernardo', 'reg', 'Registrar Staff'), E(4, 'Mr. Ramil Pascual', 'maint', 'Maintenance Foreman'),
     E(5, 'Ms. Grace Ocampo', 'lib', 'Librarian II'), E(6, 'Mr. Dennis Villamor', 'hr', 'HR Officer'),
     E(7, 'Ms. Rhea Tolentino', 'ro', 'Research Assistant'), E(8, 'Mr. Arnel Castillo', 'sec', 'Security Guard'),
-    E(9, 'Ms. Josefa Rivera', 'cetd', 'Administrative Aide'), E(10, 'Mr. Noel Garcia', 'maint', 'Utility Worker'),
+    E(9, 'Ms. Josefa Rivera', 'ce-dean', 'Administrative Aide'), E(10, 'Mr. Noel Garcia', 'maint', 'Utility Worker'),
   ]);
   const semesters = a([
     { id: 'sem1', name: '1st Semester', period: 'Aug – Dec' },
@@ -104,8 +150,7 @@ export function makeSeed() {
 
   const users = [
     { id: 'u-admin', name: 'Research Office Admin', email: 'admin@plm.edu.ph', password: 'Admin@123', role: 'admin', status: 'active' },
-    { id: 'u-cet', name: 'CET Research Coordinator', email: 'cet.research@plm.edu.ph', password: 'Coord@123', role: 'coordinator', college: 'cet', status: 'active' },
-    { id: 'u-ccss', name: 'CCSS Research Coordinator', email: 'ccss.research@plm.edu.ph', password: 'Coord@123', role: 'coordinator', college: 'ccss', status: 'active' },
+    ...colleges.map((c) => ({ id: `u-${c.id}`, name: `${c.abbr} Research Coordinator`, email: `${c.id}.research@plm.edu.ph`, password: 'Coord@123', role: 'coordinator', college: c.id, status: 'active' })), // one per college
     { id: 'u-faculty', name: 'Dr. Maria Santos', email: 'msantos@plm.edu.ph', password: 'Faculty@123', role: 'faculty', personId: 'f1', status: 'active' },
     { id: 'u-student', name: 'Aira Valdez', email: 'avaldez@plm.edu.ph', password: 'Student@123', role: 'student', personId: 's1', status: 'active' },
     { id: 'u-employee', name: 'Ms. Marites Dela Cruz', email: 'mdelacruz@plm.edu.ph', password: 'Employee@123', role: 'employee', personId: 'e1', status: 'active' },
@@ -144,6 +189,14 @@ export function makeSeed() {
     ['Solar-Powered Microgrid Design for Barangay Evacuation Centers', ['f1', 'f9'], '2025-2026', 'sem1', 'fa-doe', { status: 'pending', hours: 2 }],
     ['Flood Early-Warning Sensor Network Calibration for the Marikina River Basin', ['f1', 'f9'], '2025-2026', 'sem2', null,
       { status: 'rejected', returnReason: 'Please confirm whether this study received DOST support before resubmitting.', hours: 100 }],
+    // one approved sample per college that would otherwise have no faculty research
+    ['Passive Cooling Strategies for Mid-Rise Residential Buildings in Metro Manila', ['f17'], '2024-2025', 'sem1', null],
+    ['Audit Quality and Financial Reporting Compliance Among Philippine SMEs', ['f18'], '2024-2025', 'sem2', null],
+    ['Prevalence of Hypertension Among Urban Poor Communities in Manila', ['f19'], '2024-2025', 'sem1', 'fa-doh'],
+    ['Rehabilitation Outcomes After Stroke in Community-Based Physical Therapy Programs', ['f20'], '2025-2026', 'sem1', null],
+    ['Citizen Participation in Barangay Budgeting Processes in Manila', ['f21'], '2024-2025', 'sem2', null],
+    ['Heritage Tourism Potential of Intramuros as a Culinary Destination', ['f22'], '2025-2026', 'sem1', 'fa-plm'],
+    ['Judicial Delay and Access to Justice in Philippine Trial Courts', ['f23'], '2025-2026', 'sem1', null],
   ];
   const ER = [
     ['Digital Records Management Practices in the University Accounting Office', ['e1'], 'acct', '2024-2025', 'sem1', null],
@@ -153,7 +206,7 @@ export function makeSeed() {
     ['Library Services Satisfaction Survey Among Faculty and Students', ['e5'], 'lib', '2025-2026', 'sem1', null],
     ['Research Support Needs of Junior Faculty: A Needs Assessment', ['e7', 'e6'], 'ro', '2025-2026', 'sem1', 'fa-plm'],
     ['Telework Adoption in University Administrative Offices', ['e6'], 'hr', '2022-2023', 'sem2', null],
-    ['Energy Use Behavior of Non-Teaching Personnel in the Engineering Building', ['e9'], 'cetd', '2025-2026', 'sem1', null],
+    ['Energy Use Behavior of Non-Teaching Personnel in the Engineering Building', ['e9'], 'ce-dean', '2025-2026', 'sem1', null],
     ['Accounting Controls for Research Grant Disbursement', ['e1', 'e7'], 'acct', '2025-2026', 'sem1', 'fa-dost', { status: 'pending', hours: 5 }],
     ['Night-Shift Guard Fatigue and Incident Response', ['e2'], 'sec', '2025-2026', 'sem1', null],
   ];
@@ -258,7 +311,7 @@ export function makeSeed() {
   };
   const personCollege = (list, id) => list.find((p) => p.id === id);
   const OWNER = { f1: 'u-faculty', f2: 'u-faculty2', s1: 'u-student', s10: 'u-student2', e1: 'u-employee', e2: 'u-employee2' };
-  const creatorOf = (lead, college) => OWNER[lead] || (college === 'cet' && lead === 'f9' ? 'u-cet' : college === 'ccss' ? 'u-ccss' : 'u-admin');
+  const creatorOf = (lead, college) => OWNER[lead] || (college === 'ce' && lead === 'f9' ? 'u-ce' : college === 'cistm' ? 'u-cistm' : 'u-admin');
 
   const counters = {};
   const records = [];
@@ -322,7 +375,7 @@ export function makeSeed() {
     }
   });
   const CONTRIBUTORS = ['u-faculty', 'u-faculty2', 'u-student', 'u-student2', 'u-employee', 'u-employee2'];
-  const reviewerOf = (r) => (collegeOf(r) === 'cet' ? 'u-cet' : collegeOf(r) === 'ccss' ? 'u-ccss' : 'u-admin');
+  const reviewerOf = (r) => (users.some((u) => u.id === `u-${collegeOf(r)}`) ? `u-${collegeOf(r)}` : 'u-admin'); // the college's own coordinator reviews
   records.filter((r) => r.status !== 'pending' && CONTRIBUTORS.includes(r.createdBy)).forEach((r) => {
     const by = reviewerOf(r);
     const ts = new Date(Math.min(now - 60000, new Date(r.createdAt).getTime() + 36 * 3600e3)).toISOString();

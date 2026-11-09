@@ -12,6 +12,11 @@ export const TYPES = {
     icon: 'file-text', prefix: 'FR', people: 'faculty', unit: 'college', funding: true, color: '#1F3A93',
     layout: 'drawer', peopleLabel: 'Faculty',
   },
+  'student-research': {
+    id: 'student-research', label: 'Student Research', singular: 'Student Research', short: 'Student',
+    icon: 'graduation-cap', prefix: 'SR', people: 'students', unit: 'college', course: true, color: '#5C6B7A',
+    layout: 'drawer', peopleLabel: 'Students',
+  },
   'employee-research': {
     id: 'employee-research', label: 'Employee Research', singular: 'Employee Research', short: 'Employee',
     icon: 'briefcase', prefix: 'ER', people: 'employees', unit: 'office', funding: true, color: '#9B1B1B',
@@ -27,13 +32,8 @@ export const TYPES = {
     icon: 'book-open', prefix: 'PJ', people: 'faculty', kinds: true, unit: 'college', journal: true, color: '#2E7D4F',
     layout: 'page', peopleLabel: 'Faculty',
   },
-  'student-research': {
-    id: 'student-research', label: 'Student Research', singular: 'Student Research', short: 'Student',
-    icon: 'graduation-cap', prefix: 'SR', people: 'students', unit: 'college', course: true, color: '#5C6B7A',
-    layout: 'drawer', peopleLabel: 'Students',
-  },
 };
-export const TYPE_LIST = Object.values(TYPES);
+export const TYPE_LIST = Object.values(TYPES); // also the sidebar order: Faculty, Student, Employee, Presented Papers, Published Journals
 
 // Presented Papers and Published Journals are shared by faculty, students and employees (`kinds: true`):
 // each record carries `authorKind`, which decides the authors' master list and whether it is classified by college or office.
@@ -43,6 +43,8 @@ export const KINDS = {
   employees: { unit: 'office', noun: 'employee', plural: 'Employees', kindLabel: 'Employee' },
 };
 export const ROLE_KIND = { faculty: 'faculty', student: 'students', employee: 'employees' };
+// Options of the "Author type" list filter, in display order (short labels; KINDS.kindLabel is the long form used elsewhere).
+export const AUTHOR_TYPE_FILTER = [{ value: 'faculty', label: 'Faculty' }, { value: 'employees', label: 'Employee' }, { value: 'students', label: 'Student' }];
 // Type config resolved for one record (people list / unit depend on authorKind for the shared types).
 export const metaOf = (rec) => {
   const t = TYPES[rec.type];

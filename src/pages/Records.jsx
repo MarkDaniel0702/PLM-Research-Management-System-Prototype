@@ -7,7 +7,7 @@ import ReviewActions from '../components/Review.jsx';
 import DriveBadge from '../components/DriveBadge.jsx';
 import { FormFooter, RecordFields, useRecordForm } from '../components/RecordForm.jsx';
 import { deleteRecord, getUser, useStore } from '../store.js';
-import { KINDS, STATUS, TYPES, metaOf } from '../schema.js';
+import { AUTHOR_TYPE_FILTER, KINDS, STATUS, TYPES, metaOf } from '../schema.js';
 import { canCreateType, canDelete, canEdit, canReports, canSeeDrive, isContributor } from '../perm.js';
 import { authorNames, byId, collegeAbbr, editPath, indexOf, matchesQuery, nameOf, newPath, semesterName, unitLabel, useSessionState, visibleRecords } from '../lib/data.js';
 import { tableFor } from '../lib/columns.js';
@@ -102,7 +102,7 @@ function RecordList({ type }) {
         {user.role !== 'coordinator' && !isContributor(user) && (isOffice
           ? <FilterSelect value={f.unit} onChange={(v) => upd({ unit: v })} placeholder="All offices" options={db.offices.map((o) => ({ value: o.id, label: o.name }))} />
           : <FilterSelect value={f.unit} onChange={(v) => upd({ unit: v })} placeholder="All colleges" options={db.colleges.map((c) => ({ value: c.id, label: `${c.abbr} — ${c.name}` }))} />)}
-        {t.kinds && !isContributor(user) && <FilterSelect value={f.kind} onChange={(v) => upd({ kind: v })} placeholder="All author types" options={Object.entries(KINDS).filter(([v]) => user.role !== 'coordinator' || v !== 'employees').map(([value, k]) => ({ value, label: k.kindLabel }))} />}
+        {t.kinds && !isContributor(user) && <FilterSelect value={f.kind} onChange={(v) => upd({ kind: v })} placeholder="All author types" options={AUTHOR_TYPE_FILTER.filter((o) => user.role !== 'coordinator' || o.value !== 'employees')} />}
         <FilterSelect value={shared.semester} onChange={(v) => { setShared({ semester: v }); setPage(1); }} placeholder="All semesters" options={db.semesters.map((s) => ({ value: s.id, label: s.name }))} />
         <FilterSelect value={shared.year} onChange={(v) => { setShared({ year: v }); setPage(1); }} placeholder="All years" options={db.academicYears.map((y) => y.label)} />
         {t.journal && <FilterSelect value={f.indexing} onChange={(v) => upd({ indexing: v })} placeholder="All indexing" options={db.indexing.map((i) => ({ value: i.id, label: i.name }))} />}
